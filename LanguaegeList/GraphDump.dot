@@ -1,0 +1,154 @@
+digraph differentiator{
+	rankdir=UD;
+	bgcolor="#FFFFFF";	node[color="black", fontsize=14];
+	fixedsize=true;
+	Q00921658[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 00921680} | {right | 00927F60}}}" ]
+	Q00921680[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC IDENT | main} | {{left | 009216A8} | {right | 00921720}}}" ]
+	Q009216A8[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{PARAM | a huet} | {{left | 009216D0} | {right | 00000000}}}" ]
+	Q009216D0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{PARAM | b lya} | {{left | 009216F8} | {right | 00000000}}}" ]
+	Q009216F8[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{{PARAM | c uka} | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q009216D0 -> Q009216F8
+
+	Q009216A8 -> Q009216D0
+
+	Q00921720[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 00921748} | {right | 009217C0}}}" ]
+	Q00921748[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALSE | {{left | 00921770} | {right | 00921798}}}" ]
+	Q00921770[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{a huet | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00921798[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{z | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00921748 -> Q00921770
+	Q00921748 -> Q00921798
+
+	Q009217C0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 009217E8} | {right | 00921860}}}" ]
+	Q009217E8[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALSE | {{left | 00921810} | {right | 00921838}}}" ]
+	Q00921810[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{b lya | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00921838[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{z | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q009217E8 -> Q00921810
+	Q009217E8 -> Q00921838
+
+	Q00921860[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 00921888} | {right | 00927EC0}}}" ]
+	Q00921888[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALSE | {{left | 00924D60} | {right | 009204B0}}}" ]
+	Q00924D60[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{c uka | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q009204B0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{z | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00921888 -> Q00924D60
+	Q00921888 -> Q009204B0
+
+	Q00927EC0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 00928028} | {right | 00927F10}}}" ]
+	Q00928028[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC CALL | dispatcher} | {{left | 00927E48} | {right | 00000000}}}" ]
+	Q00927E48[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{a huet | {{left | 00927DA8} | {right | 00000000}}}" ]
+	Q00927DA8[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{b lya | {{left | 00927F38} | {right | 00000000}}}" ]
+	Q00927F38[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{c uka | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00927DA8 -> Q00927F38
+
+	Q00927E48 -> Q00927DA8
+
+	Q00928028 -> Q00927E48
+
+	Q00927F10[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00927EC0 -> Q00928028
+	Q00927EC0 -> Q00927F10
+
+	Q00921860 -> Q00921888
+	Q00921860 -> Q00927EC0
+
+	Q009217C0 -> Q009217E8
+	Q009217C0 -> Q00921860
+
+	Q00921720 -> Q00921748
+	Q00921720 -> Q009217C0
+
+	Q00921680 -> Q009216A8
+	Q00921680 -> Q00921720
+
+	Q00927F60[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 00928050} | {right | 00928900}}}" ]
+	Q00928050[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC IDENT | dispatcher} | {{left | 00927EE8} | {right | 00927FB0}}}" ]
+	Q00927EE8[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{PARAM | a huet} | {{left | 00927D08} | {right | 00000000}}}" ]
+	Q00927D08[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{PARAM | b lya} | {{left | 00927F88} | {right | 00000000}}}" ]
+	Q00927F88[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{{PARAM | c uka} | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00927D08 -> Q00927F88
+
+	Q00927EE8 -> Q00927D08
+
+	Q00927FB0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 00927FD8} | {right | 00928978}}}" ]
+	Q00927FD8[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{IF | {{left | 00927D30} | {right | 00927D58}}}" ]
+	Q00927D30[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{ADD | {{left | 00928000} | {right | 00928078}}}" ]
+	Q00928000[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{a huet | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00928078[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{0 | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00927D30 -> Q00928000
+	Q00927D30 -> Q00928078
+
+	Q00927D58[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 00927DF8} | {right | 00927DD0}}}" ]
+	Q00927DF8[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC CALL | linear_solver} | {{left | 00927CE0} | {right | 00000000}}}" ]
+	Q00927CE0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{b lya | {{left | 00927E70} | {right | 00000000}}}" ]
+	Q00927E70[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{c uka | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00927CE0 -> Q00927E70
+
+	Q00927DF8 -> Q00927CE0
+
+	Q00927DD0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 00927D80} | {right | 009286D0}}}" ]
+	Q00927D80[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{IF | {{left | 00928838} | {right | 00928518}}}" ]
+	Q00928838[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{ADD | {{left | 00927E20} | {right | 00927E98}}}" ]
+	Q00927E20[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{b lya | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00927E98[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{0 | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00928838 -> Q00927E20
+	Q00928838 -> Q00927E98
+
+	Q00928518[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 00928568} | {right | 009286A8}}}" ]
+	Q00928568[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC CALL | linear_solver} | {{left | 009287C0} | {right | 00000000}}}" ]
+	Q009287C0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{a huet | {{left | 009289C8} | {right | 00000000}}}" ]
+	Q009289C8[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{c uka | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q009287C0 -> Q009289C8
+
+	Q00928568 -> Q009287C0
+
+	Q009286A8[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00928518 -> Q00928568
+	Q00928518 -> Q009286A8
+
+	Q00927D80 -> Q00928838
+	Q00927D80 -> Q00928518
+
+	Q009286D0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00927DD0 -> Q00927D80
+	Q00927DD0 -> Q009286D0
+
+	Q00927D58 -> Q00927DF8
+	Q00927D58 -> Q00927DD0
+
+	Q00927FD8 -> Q00927D30
+	Q00927FD8 -> Q00927D58
+
+	Q00928978[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00927FB0 -> Q00927FD8
+	Q00927FB0 -> Q00928978
+
+	Q00928050 -> Q00927EE8
+	Q00928050 -> Q00927FB0
+
+	Q00928900[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | 00000000} | {right | 00000000}}}" ]
+
+	Q00927F60 -> Q00928050
+	Q00927F60 -> Q00928900
+
+	Q00921658 -> Q00921680
+	Q00921658 -> Q00927F60
+
+}

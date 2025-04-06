@@ -1,0 +1,45 @@
+call main
+hlt
+main:
+pop [3]
+pop [2]
+pop [1]
+inp
+pop [1]
+inp
+pop [2]
+inp
+pop [3]
+push [1]
+push [2]
+push [3]
+call dispatcher
+
+ret
+dispatcher:
+pop [3]
+pop [2]
+pop [1]
+push [1]
+push 0
+add
+push 0
+jne end_if_0
+push [2]
+push [3]
+call linear_solver
+push [2]
+push 0
+add
+push 0
+jne end_if_1
+push [1]
+push [3]
+call linear_solver
+
+end_if_1:
+
+end_if_0:
+
+ret
+

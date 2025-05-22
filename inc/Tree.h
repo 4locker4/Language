@@ -38,7 +38,7 @@ enum OPERATORS
     COS  = 'c',
     LN   = 'l',
     SQRT = 'S',
-    POW  = '^',
+    POW  = '\'',
     ADD  = '+',
     SUB  = '-',
     MUL  = '*',
@@ -52,6 +52,8 @@ enum OPERATORS
     WHILE         = 'w',
     PRINT         = 'p',
     DEF_FUNC      = 'd',
+    START_FUNC    = '{',
+    END_FUNC      = '}',
 
     EQUALITY      = 'e',
     MORE          = '>',
@@ -60,14 +62,18 @@ enum OPERATORS
     LESS_OR_EQ    = 'l',
     INPUT         = 'i',
 
+    OR            = 'o',
+    AND           = 'a',
+
     RETURN        = 'r',
 };
 
 typedef struct
 {
-    int    ident_val  = 0;
-    char * ident_name = NULL;
-    int    ident_num  = -1;
+    size_t ident_val  = 0;
+    size_t ident_num  = -1;
+    
+    char   ident_name[32] = {};
 } IDENT_DATA;
 
 typedef union
@@ -90,7 +96,7 @@ typedef struct NODE
 
 typedef struct
 {
-    char *    name    = NULL;
+    const char *    name    = NULL;
     OPERATORS token   = NOT_OPERATOR;
 } OP_DATA;
 
@@ -117,7 +123,13 @@ typedef struct
     OP_DATA inp             = {};
     OP_DATA powc            = {};
     OP_DATA print           = {};
-
+    OP_DATA more            = {};
+    OP_DATA less            = {};
+    OP_DATA grater_or_eq    = {};
+    OP_DATA less_or_eq      = {};
+    OP_DATA or_             = {};
+    OP_DATA and_            = {};
+    OP_DATA start_func      = {};
 } ALL_OPS_DATAS;
 
 typedef struct 
@@ -163,6 +175,7 @@ NODE *  GetWhile                    (TOKEN * token_table, size_t * ip);
 NODE *  GetPrint                    (TOKEN * token_table, size_t * ip);
 
 NODE *  GetCompare                  (TOKEN * token_table, size_t * ip);
+NODE *  GetCondition                (TOKEN * token_table, size_t * ip);
 
 NODE *  GetEqualse                  (TOKEN * token_table, size_t * ip);
 

@@ -15,14 +15,14 @@ sources = ./src/Language.cpp ./src/Tree.cpp ./src/Utils.cpp ./BackEnd/src/CodeGe
 
 objects = $(sources:.cpp=.o)
 
-execute = Differentiator.exe
+execute = Language.exe
 
-all: $(sources) $(execute) run
+all: $(sources) $(execute)
 
 run:
-	rm -rf GraphDump.html
-	@$(execute)
 	@echo -e -en '\E[;32m'"\n\t\t\t\033[1mRunning...\t\t\t\033[0m\n\n"
+	rm -rf GraphDump.html
+	../Language/Language.exe
 	
 $(execute): $(objects) 
 	$(compiler) $(objects) -o $@

@@ -7,7 +7,7 @@
 #include "Asserts.h"
 #include "Tree.h"
 
-const char SEPARATER = '|';
+const char SEPARATER = ' ';
 
 TOKEN *             FillTokenTypes            (TOKEN_TABLE * table);
 void                CountTokens               (TOKEN_TABLE * table);
@@ -20,7 +20,5 @@ NODE *  RecursyTreeRead     (NODE * node, FILE * file);
 void    GenOpCode           (NODE * node, FILE * file);
 void    IfCodeGen           (NODE * node, FILE * file);
 void    WhileCodeGen        (NODE * node, FILE * file);
-
-
 
 #endif

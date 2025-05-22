@@ -1,6 +1,6 @@
 /// @file Utils.cpp
 
-#include "..\inc\Utils.h"
+#include "../inc/Utils.h"
 
 /**
  * @brief Checks double error.

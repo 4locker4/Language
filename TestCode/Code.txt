@@ -1,1 +1,17 @@
->>>|main|(|max num|,|current_div|,|current num|)|max num|!=|###|<<<|\/|max num|-|current num|current_div|!=|current_div|\|current num|<<<|<<<|$|<<<|
+shema_buhicha davalka (pirat)
+{
+    x piva_z 10*2 vodka
+    rvota x vodka
+}
+
+shema_buhicha altushka (razmer3, mnogo_alko)
+{
+    mnogo_alko piva_z 1000 * 999 - 90 - (3 + 4) vodka
+
+    esli_krepkost_alko (100 - 1 > 0)
+    {
+        rvota 5 vodka
+    }
+    
+    rvota 888 vodka
+}

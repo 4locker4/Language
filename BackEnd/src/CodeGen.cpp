@@ -7,14 +7,27 @@ void ReadTree (TOKEN_TABLE * token_table)
 {
     my_assert (token_table);
 
-    FILE * asm_file = fopen ("AsmCode.txt", "w+");
+    FILE * asm_file = fopen ("LanguaegeList/AsmCode.txt", "w+");
     my_assert (asm_file);
 
     NODE * root = token_table->tree;
 
+    fprintf (asm_file, "global main\n\n"
+                       "section .text\n\n");
+
     fprintf (asm_file, "call main\nhlt\n");
 
-    RecursyTreeRead (root, asm_file);
+    while (token_table->tree != NULL)
+    {
+        fprintf (asm_file, "\t\t.%s:\n", root->data.ident.ident_name);
+
+        RecursyTreeRead (root->left, asm_file);
+
+        root = root->right;        
+    }
+
+    fprintf (asm_file, "section .data\n\n"
+                       "\tmem: \n\n \t\t times %d dq 0", (token_table->n_idents + 1) * 8);
 
     return;
 }
@@ -32,7 +45,7 @@ NODE * RecursyTreeRead (NODE * node, FILE * file)
         {
             fprintf (file, "push %d\n", node->data.val);
 
-            break;
+            return NULL;
         }
         case FUNC_IDENT:
         {
@@ -44,7 +57,7 @@ NODE * RecursyTreeRead (NODE * node, FILE * file)
 
             fprintf (file, "ret\n");
 
-            break;
+            return NULL;
         }
         case FUNC_CALL:
         {
@@ -54,7 +67,7 @@ NODE * RecursyTreeRead (NODE * node, FILE * file)
 
             fprintf (file, "call %s\n", node->data.ident.ident_name);
 
-            break;
+            return NULL;
         }
         case PARAM:
         {
@@ -62,21 +75,23 @@ NODE * RecursyTreeRead (NODE * node, FILE * file)
 
             fprintf (file, "pop [%d]\n", node->data.ident.ident_num);
 
-            break;
+            return NULL;
         }
         case IDENT:
         {
-            fprintf (file, "push [%d]\n", node->data.ident.ident_num);
+            fprintf (file, "\t\tpush [mem + r15 + %d * 8]\n", node->data.ident.ident_num);
 
             if (node->left) RecursyTreeRead (node->left, file);
 
-            break;
+            return NULL;
         }
         case OP:
         {
+            printf ("OP\n");
+
             GenOpCode (node, file);
 
-            break;
+            return NULL;
         }
         default:
         {
@@ -262,6 +277,8 @@ void WhileCodeGen (NODE * node, FILE * file)
     my_assert (file);
 
     int while_num = WHILE_COUNTER++;
+
+    printf ("In while\n\n\n");
 
     fprintf (file, "while_start_%d:\n", while_num);
 

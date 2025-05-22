@@ -1,17 +1,18 @@
 #include "../inc/Language.h"
 
-const char * MY_TRY     = "./Code.txt";
+const char * MY_TRY     = "TestCode/Code.txt";
 const char * SQ_SOLVER  = "./SquareSolver.txt";
 
 int main ()
 {
-    TOKEN_TABLE * table = TableCtor (SQ_SOLVER);
+    printf ("Start\n");
+    TOKEN_TABLE * table = TableCtor (MY_TRY);
 
-    printf ("%p - fafter ctor\n", table->tokens_array);
+    printf ("%p - after ctor\n", table->tokens_array);
 
     FillTokenTypes (table);
 
-    printf ("%p - fafter fill\n", table->tokens_array);
+    printf ("%p - after fill\n", table->tokens_array);
 
     size_t ip = 0;
 

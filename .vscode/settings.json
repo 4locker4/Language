@@ -2,5 +2,6 @@
     "files.associations": {
         "cmath": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "makefile.configureOnOpen": false
 }

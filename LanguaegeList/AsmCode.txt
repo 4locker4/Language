@@ -1,0 +1,11 @@
+global entry
+
+section .text
+
+		call entry
+		hlt
+section .data
+
+	mem: 
+
+ 		 times 8 dq 0

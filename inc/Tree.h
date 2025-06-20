@@ -76,11 +76,12 @@ typedef struct
     char   ident_name[32] = {};
 } IDENT_DATA;
 
-typedef union
+typedef struct
 {
-    IDENT_DATA ident;
-    nodeElem   val;
-    OPERATORS  op;
+    IDENT_DATA ident    = {};
+    nodeElem   val      = 0;
+    size_t     n_params = 0;
+    OPERATORS  op       = NOT_OPERATOR;
 } DATA;
 
 typedef struct NODE
@@ -158,10 +159,12 @@ typedef struct
 } TOKEN_TABLE;
 
 NODE *  GetFunctions                (TOKEN * token_table, size_t * ip);
+void    ProcessAlpha                (char * text, TOKEN_TABLE * table, size_t * len_counter, size_t * ip, size_t * ident_num);
+
 NODE *  GetFunc                     (TOKEN * token_table, size_t * ip);
 
-NODE *  GetAllParameters            (TOKEN * token_table, size_t * ip, FUNC_TYPE type);
-NODE *  GetParam                    (TOKEN * token_table, size_t * ip, FUNC_TYPE type);
+NODE *  GetAllParameters            (TOKEN * token_table, size_t * ip, FUNC_TYPE type, size_t * n_params);
+NODE *  GetParam                    (TOKEN * token_table, size_t * ip, FUNC_TYPE type, size_t * n_params);
 
 NODE *  GetBodyOps                  (TOKEN * token_table, size_t * ip);
 NODE *  GetAction                   (TOKEN * token_table, size_t * ip);
@@ -186,7 +189,7 @@ NODE *  GetDegree                   (TOKEN * token_table, size_t * ip);
 NODE *  GetMathFunc                 (TOKEN * token_table, size_t * ip);
 NODE *  GetP                        (TOKEN * token_table, size_t * ip);
 NODE *  GetTerm                     (TOKEN * token_table, size_t * ip);
-int     SyntaxError                 (TOKEN * token_table, size_t * ip);
+int     SyntaxError                 (TOKEN * token_table, size_t * ip, const char * func_name);
 
 NODE *  CallocNode                  (NODE * left_node, NODE * right_node);
 NODE *  NewNumNode                  (X_TYPES type, int elem, NODE * left_node, NODE * right_node);

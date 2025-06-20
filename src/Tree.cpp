@@ -164,11 +164,11 @@ void CountTokens (TOKEN_TABLE * table)
 #define CHECK_IF_OP(get_nm)                                                                                                        \
                                 if (!strncasecmp (text, table->ops_data.get_nm.name, strlen (table->ops_data.get_nm.name) * sizeof (char)))        \
                                 {                                                                                                  \
-                                    table->tokens_array[ip].token.op  =  table->ops_data.get_nm.token;                             \
-                                    table->tokens_array[ip].token_type = OP;                                                       \
-                                    text += sizeof (char) * strlen (table->ops_data.get_nm.name);                                  \
+                                    table->tokens_array[*ip].token.op  =  table->ops_data.get_nm.token;                             \
+                                    table->tokens_array[*ip].token_type = OP;                                                       \
+                                    *text += sizeof (char) * strlen (table->ops_data.get_nm.name);                                  \
                                                                                                                                    \
-                                    continue;                                                                                      \
+                                    return;                                                                                      \
                                 }
 
 TOKEN * FillTokenTypes (TOKEN_TABLE * table)
@@ -185,6 +185,9 @@ TOKEN * FillTokenTypes (TOKEN_TABLE * table)
 
     char * pointer_to_ident_start = NULL;
 
+    size_t ident_num = 0;
+    size_t rep_num   = 0;
+
     for (size_t ip = 0; table->n_tokens > ip; ip++)
     {
         while (isspace (*text))
@@ -192,84 +195,7 @@ TOKEN * FillTokenTypes (TOKEN_TABLE * table)
 
         if (isalpha (*text) || *text == '_')
         {
-            my_assert (table->tokens_array);
-            
-            len_counter = 0;
-
-            CHECK_IF_OP (sin);
-            CHECK_IF_OP (cos);
-            CHECK_IF_OP (ln);
-            CHECK_IF_OP (sqrt);
-            CHECK_IF_OP (equalse);
-            CHECK_IF_OP (if_);
-            CHECK_IF_OP (while_);
-            CHECK_IF_OP (end_op);
-            CHECK_IF_OP (ret);
-            CHECK_IF_OP (inp);
-            CHECK_IF_OP (print);
-            CHECK_IF_OP (or_);
-            CHECK_IF_OP (and_);
-
-            if (!strncasecmp (text, table->ops_data.def_func.name, strlen (table->ops_data.def_func.name) * sizeof (char)))
-            {
-                table->tokens_array[ip].token.op  =  table->ops_data.def_func.token;
-                text += sizeof (char) * strlen (table->ops_data.def_func.name);  
-                
-                table->tokens_array[ip].token_type = OP;
-
-                printf ("%s\n", text);
-                
-                continue;
-            }
-
-// ================================ TAKE IDENT OR FUNC NAME ================================
-            pointer_to_ident_start = text;
-
-            text++;
-            len_counter++;
-
-            while (isalpha (*text) || isalnum (*text) || *text == '_')
-            {
-                text++;
-                len_counter++;
-            }
-
-            table->tokens_array[ip].token_size = len_counter;
-
-            memcpy (table->tokens_array[ip].token.ident.ident_name, pointer_to_ident_start, len_counter);
-            table->tokens_array[ip].token.ident.ident_name[len_counter + 1] = '\0';
-
-// ========================================== END ==========================================
-
-// ============================== LOOK ELEMENT IN TOKEN TABLE ==============================
-
-            int ident_num = CheckRepitedIdent (table, table->tokens_array[ip].token.ident.ident_name, ip);
-
-            if (ident_num == NOT_REPITED)
-                table->tokens_array[ip].token.ident.ident_num = ident_pos++;                // If element not into token table, put it in it
-            else
-                table->tokens_array[ip].token.ident.ident_num = ident_num;                  // Else, give it it`s ident number
-
-// ========================================== END ==========================================
-
-// ================= SWITCH TO IDENT TYPE (IDENT, FUNC_IDENT OR FUNC_CALL) =================
-
-            if (*text++ != OPEN_BRACKET && *text++ != OPEN_BRACKET)                         // If on next or +2 pos there is no bracket, it is
-            {                                                                               // ident
-                table->tokens_array[ip].token_type = IDENT;
-                table->n_idents++;
-
-                text -= 2;
-            }
-            else                                                                            // Else - switch to FUNC_IDENT or FUNC_CALL
-            {
-                if (table->tokens_array[ip - 1].token_type == OP && table->tokens_array[ip - 1].token.op == DEF_FUNC)
-                    table->tokens_array[ip].token_type = FUNC_IDENT;
-                else
-                    table->tokens_array[ip].token_type = FUNC_CALL;
-                
-                text--;
-            }
+            ProcessAlpha (text, table, &len_counter, &ip, &ident_num);
 // ========================================== END ==========================================
         }
         else if (isdigit (*text) || (*text == '-' && isdigit (*(text + 1))))
@@ -282,6 +208,7 @@ TOKEN * FillTokenTypes (TOKEN_TABLE * table)
 
             my_assert (text != start_num);
         }
+#define FILL_TABLE_TOKEN(token_name) table->tokens_array[ip].token.op  =  table->ops_data.##token_name.token;
         else
         {
             table->tokens_array[ip].token_type = OP;
@@ -292,12 +219,12 @@ TOKEN * FillTokenTypes (TOKEN_TABLE * table)
                 {
                     if (*text == '=')
                     {
-                        table->tokens_array[ip].token.op  =  table->ops_data.less_or_eq.token;
-
+                        FILL_TABLE_TOKEN (less_or_eq)
+                        
                         text++;
                     }
                     else
-                        table->tokens_array[ip].token.op  =  table->ops_data.less.token;
+                        FILL_TABLE_TOKEN (less)
                     
                     break;
                 }
@@ -305,72 +232,72 @@ TOKEN * FillTokenTypes (TOKEN_TABLE * table)
                 {
                     if (*text == '=')
                     {
-                        table->tokens_array[ip].token.op  =  table->ops_data.grater_or_eq.token;
+                        FILL_TABLE_TOKEN (grater_or_eq)
 
                         text++;
                     }
                     else
-                        table->tokens_array[ip].token.op  =  table->ops_data.more.token;
-                    
+                        FILL_TABLE_TOKEN (more)
+
                     break;
                 }
                 case ADD:
                 {
-                    table->tokens_array[ip].token.op  =  table->ops_data.add.token;
+                    FILL_TABLE_TOKEN (add)
 
                     break;
                 }
                 case SUB:
                 {
-                    table->tokens_array[ip].token.op  =  table->ops_data.sub.token;
+                    FILL_TABLE_TOKEN (sub)
 
                     break;
                 }
                 case MUL:
                 {
-                    table->tokens_array[ip].token.op  =  table->ops_data.mul.token;
+                    FILL_TABLE_TOKEN (mul)
 
                     break;
                 }
                 case DIV:
                 {
-                    table->tokens_array[ip].token.op  =  table->ops_data.div.token;
+                    FILL_TABLE_TOKEN (div)
 
                     break;
                 }
                 case POW:
                 {
-                    table->tokens_array[ip].token.op  =  table->ops_data.powc.token;
+                    FILL_TABLE_TOKEN (powc)
 
                     break;
                 }
                 case SPLIT:
                 {
-                    table->tokens_array[ip].token.op  =  table->ops_data.split.token;
+                    FILL_TABLE_TOKEN (split)
 
                     break;
                 }
                 case CLOSE_BRACKET:
                 {
-                    table->tokens_array[ip].token.op = table->ops_data.close_bracket.token;
+                    FILL_TABLE_TOKEN (close_bracket)
 
                     break;
                 }
                 case OPEN_BRACKET:
                 {
-                    table->tokens_array[ip].token.op = table->ops_data.open_bracket.token;
+                    FILL_TABLE_TOKEN (open_bracket)
 
                     break;
                 }
                 case START_FUNC:
                 {
-                    table->tokens_array[ip].token.op = table->ops_data.start_func.token;
+                    FILL_TABLE_TOKEN (start_func)
 
                     break;
                 }
                 case END_FUNC:
                 {
-                    table->tokens_array[ip].token.op  =  table->ops_data.end_op.token;
+                    FILL_TABLE_TOKEN (end_op)
 
                     break;
                 }
@@ -386,38 +313,108 @@ TOKEN * FillTokenTypes (TOKEN_TABLE * table)
         }
     }
 
-    for (int i = 0; table->n_tokens > i; i++)
-    {
-        printf ("Token number: %d\n", i);
-
-        printf ("Token type: %d\n", table->tokens_array[i].token_type);
-
-        if (table->tokens_array[i].token_type == NUM)
-            printf ("Token val: %d\n", table->tokens_array[i].token.val);
-        else if (table->tokens_array[i].token_type == IDENT)
-            printf ("Token ident: %s; Ident num: %d\n", TAKE_IDENT_ (name), TAKE_IDENT_ (num));
-        else if (table->tokens_array[i].token_type == OP)
-            printf ("Token op ID: %d,  size: %d\n",  table->tokens_array[i].token.op, table->tokens_array[i].token_size);
-        else if (table->tokens_array[i].token_type == FUNC_IDENT)
-           printf ("Token func ident: %s; Ident num: %d\n", TAKE_IDENT_ (name), TAKE_IDENT_ (num));
-        else
-           printf ("\n\n\nWrong operator %d\n\n", table->tokens_array[i].token_type);
-        
-        printf ("\n");
-    }
-
     return table->tokens_array;
 }
 
+#undef FILL_TABLE_TOKEN
+
+inline void ProcessAlpha (char * text, TOKEN_TABLE * table, size_t * len_counter, size_t * ip, size_t * ident_num)
+{
+    my_assert (table->tokens_array);
+            
+    *len_counter = 0;
+
+    CHECK_IF_OP (sin);
+    CHECK_IF_OP (cos);
+    CHECK_IF_OP (ln);
+    CHECK_IF_OP (sqrt);
+    CHECK_IF_OP (equalse);
+    CHECK_IF_OP (if_);
+    CHECK_IF_OP (while_);
+    CHECK_IF_OP (end_op);
+    CHECK_IF_OP (ret);
+    CHECK_IF_OP (inp);
+    CHECK_IF_OP (print);
+    CHECK_IF_OP (or_);
+    CHECK_IF_OP (and_);
+
+    if (!strncasecmp (text, table->ops_data.def_func.name, strlen (table->ops_data.def_func.name) * sizeof (char)))
+    {
+        table->tokens_array[*ip].token.op  =  table->ops_data.def_func.token;
+        text += sizeof (char) * strlen (table->ops_data.def_func.name);  
+        
+        table->tokens_array[*ip].token_type = OP;
+
+        printf ("%s\n", text);
+        
+        return;
+    }
+
+// ================================ TAKE IDENT OR FUNC NAME ================================
+    char * pointer_to_ident_start = text;
+
+    text++;
+    len_counter++;
+
+    while (isalpha (*text) || isalnum (*text) || *text == '_')
+    {
+        text++;
+        len_counter++;
+    }
+
+    table->tokens_array[*ip].token_size = *len_counter;
+
+    memcpy (table->tokens_array[*ip].token.ident.ident_name, pointer_to_ident_start, *len_counter);
+    table->tokens_array[*ip].token.ident.ident_name[*len_counter + 1] = '\0';
+
+// ========================================== END ==========================================
+
+// ============================== LOOK ELEMENT IN TOKEN TABLE ==============================
+
+    size_t rep_num = CheckRepitedIdent (table, table->tokens_array[*ip].token.ident.ident_name, *ip);
+
+    if (rep_num == NOT_REPITED)
+    {
+        table->tokens_array[*ip].token.ident.ident_num = *ident_num;                // If element not into token table, put it in it
+
+        *ident_num += 1;
+        
+        table->n_idents++;
+    }
+    else
+        table->tokens_array[*ip].token.ident.ident_num = rep_num;                   // Else, give it it`s ident number
+
+// ========================================== END ==========================================
+
+// ================= SWITCH TO IDENT TYPE (IDENT, FUNC_IDENT OR FUNC_CALL) =================
+
+    if (*text++ != OPEN_BRACKET && *text++ != OPEN_BRACKET)                         // If on next or +2 pos there is no bracket, it is
+    {                                                                               // ident
+        table->tokens_array[*ip].token_type = IDENT;
+        table->tokens_array[*ip].token.ident.ident_num = *ident_num;
+
+        *ident_num += 1;
+
+        table->n_idents++;
+
+        text -= 2;
+    }
+    else                                                                            // Else - switch to FUNC_IDENT or FUNC_CALL
+    {
+        if (table->tokens_array[*ip - 1].token_type == OP && table->tokens_array[*ip - 1].token.op == DEF_FUNC)
+        {
+            table->tokens_array[*ip].token_type = FUNC_IDENT;
+
+            ident_num = 0;
+        }
+        else
+            table->tokens_array[*ip].token_type = FUNC_CALL;
+        
+        text--;
+    }
+}
+
 #undef CHECK_REPITED_IDENT
-
-// char * CheckIfFunc (TOKEN * token_table, char * name, int ip)
-// {
-//     my_assert (token_table);
-//     my_assert (name);
-
-//     for (int i = 0; token_table)
-// }
 
 int CheckRepitedIdent (TOKEN_TABLE * table, char * ident, size_t ip)
 {
@@ -448,23 +445,18 @@ NODE * GetFunctions (TOKEN * token_table, size_t * ip)
 
         root->left = GetFunc (token_table, ip);
 
-        COLOR_PRINT (RED, "AFTER GET FUNC\n");
-
-        printf ("token type is %d\n", token_table[*ip].token_type);
-        printf ("token type is %d\n", token_table[*ip].token.op);
+        root->left->parent = root;
 
         *ip += 1;
 
         root->right = GetFunctions (token_table, ip);
 
+        root->left->parent = root;
+
         return root;
     }
     else
-    {
-        printf ("In else:\n");
-
         return NewOpNode (OP, END, NULL, NULL);
-    }
 }
 
 NODE * GetFunc (TOKEN * token_table, size_t * ip)
@@ -472,63 +464,67 @@ NODE * GetFunc (TOKEN * token_table, size_t * ip)
     my_assert (token_table);
     my_assert (ip);
 
-    NODE * node = NewIdentNode (FUNC_IDENT, token_table[*ip].token.ident, NULL, NULL);                                                                  // Add func name
+    NODE * node = NewIdentNode (FUNC_IDENT, token_table[*ip].token.ident, NULL, NULL);
+
+    node->data.val = token_table[*ip].token.val;
 
     *ip += 1;
-    printf ("IN GET FUNC\n");
 
     if (IS_TYPE_ (OP) && OP_TYPE_ (OPEN_BRACKET))
     {
         *ip += 1;
 
-        node->left = GetAllParameters (token_table, ip, IDENT_FUNC);
+        size_t n_params = 0;
+
+        node->left = GetAllParameters (token_table, ip, IDENT_FUNC, &n_params);
+        node->left->parent = node;
         my_assert (node->left);
-        printf ("AFTER GET PARAMS\n");
+
+        node->data.n_params = n_params;
 
         if (IS_TYPE_ (OP) && OP_TYPE_ (START_FUNC)) *ip += 1;
-        else                                        SyntaxError (token_table, ip);
+        else                                        SyntaxError (token_table, ip, "GetFunc, is`s not START_FUNC\n");
 
         node->right = GetBodyOps (token_table, ip);
         my_assert (node->right);
-        COLOR_PRINT (GREEN, "WON!\n");
+        node->right->parent = node;
+
         return node;
     }
     else 
-        SyntaxError (token_table, ip);
+        SyntaxError (token_table, ip, "GetFunc\n");
 }
 
-NODE * GetAllParameters (TOKEN * token_table, size_t * ip, FUNC_TYPE type)
+NODE * GetAllParameters (TOKEN * token_table, size_t * ip, FUNC_TYPE type, size_t * n_params)
 {
     my_assert (token_table);
     my_assert (ip);
-
-    NODE * params_root = GetParam (token_table, ip, type);
-
-    printf ("IN GET ALL PARAMS\n");
+    
+    NODE * params_root = GetParam (token_table, ip, type, n_params);
 
     if (IS_TYPE_ (OP) && OP_TYPE_ (SPLIT))
     {
         *ip += 1;
 
-        params_root->left = GetAllParameters (token_table, ip, type);
+        params_root->left = GetAllParameters (token_table, ip, type, n_params);
     }
     else if (IS_TYPE_ (OP) && OP_TYPE_ (CLOSE_BRACKET))
     {
         *ip += 1;
-        printf ("CLOSE BRACKET\n");
+
         params_root->right = NULL;
 
         return params_root;
     }
     else
-        SyntaxError (token_table, ip);
+        SyntaxError (token_table, ip, "GetAllParameters\n");
     
     return params_root;
 }
 
 #define MAKE_PARAM_TYPE_(func_type) NewIdentNode (func_type, token_table[*ip].token.ident, NULL, NULL);
 
-NODE * GetParam (TOKEN * token_table, size_t * ip, FUNC_TYPE type)
+NODE * GetParam (TOKEN * token_table, size_t * ip, FUNC_TYPE type, size_t * n_params)
 {
     my_assert (token_table);
     my_assert (ip);
@@ -536,13 +532,13 @@ NODE * GetParam (TOKEN * token_table, size_t * ip, FUNC_TYPE type)
     NODE * param = NULL;
 
     if (type == IDENT_FUNC)
-{        param = MAKE_PARAM_TYPE_ (PARAM);
-        COLOR_PRINT (GREEN, "IT IS PARAM\n");}
+    {
+        param = MAKE_PARAM_TYPE_ (PARAM)
 
+        *n_params += 1;
+    }
     else
-        param = MAKE_PARAM_TYPE_ (IDENT) 
-
-    printf ("param pam pam\n");
+        param = MAKE_PARAM_TYPE_ (IDENT)
     
     *ip += 1;
 
@@ -556,8 +552,6 @@ NODE * GetBodyOps (TOKEN * token_table, size_t * ip)
     my_assert (token_table);
     my_assert (ip);
 
-    printf ("GET BODY OPS\n");
-
     if (IS_TYPE_ (OP) && OP_TYPE_ (END))
         return NewOpNode (OP, END, NULL, NULL);
 
@@ -565,15 +559,16 @@ NODE * GetBodyOps (TOKEN * token_table, size_t * ip)
     
     bunch->left  = GetAction (token_table, ip);
 
+    bunch->left->parent = bunch;
+
     if (IS_TYPE_ (OP) && OP_TYPE_ (END))
         *ip += 1;
     else
-        SyntaxError (token_table, ip);
+        SyntaxError (token_table, ip, "GetBodyOps\n");
     
-    printf ("type is %d\n", token_table[*ip].token_type);
-    printf ("type is %d\n", token_table[*ip].token.op);
-
     bunch->right = GetBodyOps (token_table, ip);   
+
+    bunch->right->parent = bunch;
 
     return bunch;
 }
@@ -628,12 +623,14 @@ NODE * GetFuncCall (TOKEN * token_table, size_t * ip)
     {
         *ip += 1;
 
-        node->left = GetAllParameters (token_table, ip, CALL_FUNC);
+        node->left = GetAllParameters (token_table, ip, CALL_FUNC, NULL);
+
+        node->left->parent = node;
 
         return node;
     }
     else
-        SyntaxError (token_table, ip);
+        SyntaxError (token_table, ip, "GetFuncCall");
 }
 
 NODE * GetOp (TOKEN * token_table, size_t * ip)
@@ -688,7 +685,7 @@ NODE * GetOp (TOKEN * token_table, size_t * ip)
             break;
         }
         default:
-            SyntaxError (token_table, ip);
+            SyntaxError (token_table, ip, "GetOp\n");
     }
 
     return node;
@@ -708,6 +705,9 @@ NODE * GetReturn (TOKEN * token_table, size_t * ip)
 
     node->right = NewOpNode (OP, END, NULL, NULL);
 
+    node->left->parent  = node;
+    node->right->parent = node;
+
     return node;
 }
 
@@ -721,17 +721,19 @@ NODE * GetIf (TOKEN * token_table, size_t * ip)
     *ip += 1;
 
     if (IS_TYPE_ (OP) && OP_TYPE_ (OPEN_BRACKET))   *ip += 1;
-    else                                            SyntaxError (token_table, ip);
+    else                                            SyntaxError (token_table, ip, "GetIf, it`s not op in open bracket\n");
 
     node->left = GetCondition (token_table, ip);
 
     if (IS_TYPE_ (OP) && OP_TYPE_ (CLOSE_BRACKET))  *ip += 1;
-    else                                            SyntaxError (token_table, ip);
+    else                                            SyntaxError (token_table, ip, "GetIf, it`s not close bracket\n");
     if (IS_TYPE_ (OP) && OP_TYPE_ (START_FUNC))     *ip += 1;
-    else                                            SyntaxError (token_table, ip);
+    else                                            SyntaxError (token_table, ip, "GetIf, it`s not start_func\n");
 
     node->right = GetBodyOps (token_table, ip);
-    COLOR_PRINT (RED, "/(. Y .)\\\n");
+
+    node->left->parent  = node;
+    node->right->parent = node;
     
     return node;
 }
@@ -747,6 +749,8 @@ NODE * GetCondition (TOKEN * token_table, size_t * ip)
     {
         OPERATORS op = token_table[*ip].token.op;
 
+        *ip += 1;
+
         NODE * node_r = GetCompare (token_table, ip);
         
         NODE * node_l = node;
@@ -757,11 +761,17 @@ NODE * GetCondition (TOKEN * token_table, size_t * ip)
             {
                 node = NewOpNode (OP, AND, node_l, node_r);
 
+                node->left->parent  = node;
+                node->right->parent = node;
+
                 break;
             }
             case OR:
             {
                 node = NewOpNode (OP, OR, node_l, node_r);
+
+                node->left->parent  = node;
+                node->right->parent = node;
 
                 break;
             }
@@ -786,6 +796,9 @@ NODE * GetWhile (TOKEN * token_table, size_t * ip)
 
     node->right = GetBodyOps (token_table, ip);
 
+    node->left->parent  = node;
+    node->right->parent = node;
+
     return node;
 }
 
@@ -803,6 +816,8 @@ NODE * GetPrint (TOKEN * token_table, size_t * ip)
     else
         node->left = NUM_ (token_table[*ip].token.val);
 
+    node->left->parent  = node;
+
     return node;
 }
 
@@ -816,14 +831,18 @@ NODE * GetCompare (TOKEN * token_table, size_t * ip)
     NODE * node_l = GetExpression (token_table, ip);
 
     if (IS_TYPE_ (OP)) op = token_table[*ip].token.op;
-    else               SyntaxError (token_table, ip);
+    else               SyntaxError (token_table, ip, "GetCompare\n");
 
     *ip += 1;
 
-
     NODE * node_r = GetExpression (token_table, ip);
 
+    printf ("Second expr taken\n");
+
     NODE * condition = NewOpNode (OP, op, node_l, node_r);
+
+    condition->left->parent  = condition;
+    condition->right->parent = condition;
     
     return condition;
 }
@@ -853,7 +872,10 @@ NODE * GetEqualse (TOKEN * token_table, size_t * ip)
 
     }
     else 
-        SyntaxError (token_table, ip);
+        SyntaxError (token_table, ip, "GetEqualse\n");
+    
+    equalse_op_node->left->parent  = equalse_op_node;
+    equalse_op_node->right->parent = equalse_op_node;
     
     printf ("END OF EQUALSE\n");
     return equalse_op_node;
@@ -916,8 +938,6 @@ NODE * GetDegree (TOKEN * token_table, size_t * ip)
 
     NODE * val1 = GetP (token_table, ip);
 
-    printf ("DAAWN\n");
-
     while (IS_TYPE_ (OP) && OP_TYPE_ ((POW)))
     {
         *ip += 1;
@@ -941,8 +961,6 @@ NODE * GetP (TOKEN * token_table, size_t * ip)
 
         NODE * val = GetExpression (token_table, ip);
 
-        printf ("DAAMWN\n");
-
         if (IS_TYPE_ (OP) && OP_TYPE_ (CLOSE_BRACKET))
         {
             *ip += 1;
@@ -950,7 +968,7 @@ NODE * GetP (TOKEN * token_table, size_t * ip)
             return val;
         }
         else
-            SyntaxError (token_table, ip);
+            SyntaxError (token_table, ip, "GetP\n");
     }
     else
         return GetMathFunc (token_table, ip);
@@ -1028,28 +1046,26 @@ NODE * GetTerm (TOKEN * token_table, size_t * ip)
         }
         case OP:
         {
-            COLOR_PRINT (CYAN, "FUKICNG EXPR\n");
-
-            //node = GetBodyOps (token_table, ip);
-
-            if (IS_TYPE_ (OP) && OP_TYPE_ (CLOSE_BRACKET))
-                printf ("DAWN\n");
-
-            return node;
-
-            break;
+            if (OP_TYPE_ (CLOSE_BRACKET))
+                return node;
         }
         default:
-            SyntaxError (token_table, ip);
+            SyntaxError (token_table, ip, "GetTerm\n");
     }
 
     return node;
 }
 
-int SyntaxError (TOKEN * token_table, size_t * ip)
+int SyntaxError (TOKEN * token_table, size_t * ip, const char * func_name)
 {
-    printf ("%d\n", token_table[*ip].token_type);
-    printf ("ERROR\n");
+    printf ("ERROR\t");
+    printf ("type: %d\n", token_table[*ip].token_type);
+
+    if (token_table[*ip].token_type == OP)
+    {
+        printf ("%c\n", token_table[*ip].token.op);
+        printf ("%s\n", func_name);
+    }
     exit (1);
 }
 

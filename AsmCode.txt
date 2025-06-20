@@ -1,8 +1,0 @@
-global main
-
-section .text
-
-call main
-hlt
-
-section .datamem: times 24 dq 0

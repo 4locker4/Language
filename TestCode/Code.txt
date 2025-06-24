@@ -1,27 +1,20 @@
 shema_buhicha main (papa)
 {
-    davalka (192) vodka
+    mama piva_z factorial (5) vodka
 
-    rvota 12345 vodka
+    rvota mama vodka
 }
 
-shema_buhicha davalka (pirat)
+shema_buhicha factorial (num)
 {
-    pirat piva_z 7 vodka
-    x piva_z 10*2 vodka
+    mnogo piva_z num
 
-    altushka (x, pirat) vodka
-    rvota x vodka
-}
-
-shema_buhicha altushka (razmer3, mnogo_alko)
-{
-    mnogo_alko piva_z 1000 * 999 - 90 - (3 + 4) vodka
-
-    esli_krepkost_alko (mnogo_alko > 0)
+    esli_krepkost_alko (num > 1)
     {
-        rvota 5 vodka
+        mnojit piva_z factorial (num - 1) vodka
+
+        mnogo piva_z mnogo * mnojit vodka
     }
-    
-    rvota 888 vodka
+
+    rvota mnogo vodka
 }

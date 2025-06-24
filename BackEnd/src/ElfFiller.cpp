@@ -1,4 +1,4 @@
-#include "../../inc/Language.h"
+#include "../inc/Elf64Gen.hpp"
 
 static int IF_COUNTER = 0;
 static int WHILE_COUNTER = 0;
@@ -9,32 +9,51 @@ void ReadTree (TOKEN_TABLE * token_table)
 {
     my_assert (token_table);
 
-    FILE * asm_file = fopen ("LanguaegeList/AsmCode.txt", "w+");
-    my_assert (asm_file);
+    FILE * elf_file = fopen ("LanguaegeList/ElfFile.txt", "w+");
+    my_assert (elf_file);
 
     NODE * root = token_table->tree;
 
-//====================================== START CODEGEN ======================================
+//========================================= START CODEGEN =========================================
 
-    fprintf (asm_file, "global entry\n\n"               // Init asm prog
-                       "section .text\n\n");
+    Elf64_Ehdr ehdr  = {0};
+    Elf64_Phdr phdr  = {0};
 
-    fprintf (asm_file, "\t\tcall entry\n"               // Call main
-                       "\t\thlt\n");
+    memcpy(ehdr.e_ident, "\x7F""ELF", 4);
+    ehdr.e_ident[4]  = 2;                               // 64-bit
+    ehdr.e_ident[5]  = 1;                               // little-endian
+    ehdr.e_type      = 2;                               // Исполняемый
+    ehdr.e_machine   = 0x3E;                            // x86_64
+    ehdr.e_version   = 1;
+    ehdr.e_entry     = 0x400000 + sizeof(ehdr) + sizeof(phdr);  // Точка входа
+    ehdr.e_phoff     = sizeof(ehdr);
+    ehdr.e_ehsize    = sizeof(ehdr);
+    ehdr.e_phentsize = sizeof(phdr);                    // Размер одного заголовка
+    ehdr.e_phnum     = 1;                               // Количество заголовков
+
+    phdr.p_type      = 1;                               // Загружаемый
+    phdr.p_flags     = PF_X;             
+    phdr.p_offset    = 0;
+    phdr.p_vaddr     = 0x400000;
+    phdr.p_filesz    = phdr.p_memsz = sizeof(ehdr) + sizeof(phdr); // + sizeof(code);
+    phdr.p_align     = 0x1000;
+
+    /* Короче, сначала смещение ставим на конец всех заголовков (или если align больше, то на значение align) для сегмента данных.
+    Потом смещение сегмента кода на значение align+размер сегмента данны*/
 
 
     while (root->data.op != END)                        // Start func generation
     {
-        InitAsmFunc (root->left, asm_file);
+        InitAsmFunc (root->left, elf_file);
 
         root = root->right;
     }
 
-    fprintf (asm_file, "section .data\n\n"              // Add section data with all vars
+    fprintf (elf_file, "section .data\n\n"              // Add section data with all vars
                        "\tmem: \n\n \t\t times %d dq 0", (token_table->n_idents + 1) * 8);
     
-    fclose (asm_file);
-
+    fclose (elf_file);
+    
     return;
 }
 
@@ -82,9 +101,7 @@ NODE * InitAsmFunc (NODE * node, FILE * file)
 
     RecursyTreeRead (node->left, file);
     RecursyTreeRead (node->right, file);
-
-    fprintf (file, "\t\tpush r14\n"
-                   "\t\tret\n");
+    COLOR_PRINT (RED, "/(. Y .)\\\n");
 
     return node->right;
 }

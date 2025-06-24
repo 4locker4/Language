@@ -17,7 +17,7 @@ int main ()
     size_t ip = 0;
 
     printf ("end of token filling\n");
-    
+
     table->tree = GetFunctions (table->tokens_array, &ip);
 
     GraphDump (table->tree, "./GraphDump.dot");

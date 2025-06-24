@@ -2,6 +2,6 @@ digraph differentiator{
 	rankdir=UD;
 	bgcolor="#FFFFFF";	node[color="black", fontsize=14];
 	fixedsize=true;
-	Q0x60b515cd8780[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x621c3da94e20[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
 
 }

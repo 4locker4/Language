@@ -8,4 +8,4 @@ section .data
 
 	mem: 
 
- 		 times 8 dq 0
+ 		 times 120 dq 0

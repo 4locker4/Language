@@ -66,19 +66,16 @@ NODE * InitAsmFunc (NODE * node, FILE * file)
 {
     my_assert (node && file);
 
-    size_t params_counter = 0;
-
-    CountParams (node, &params_counter);
-
-    fprintf (file,  ".%s:\n\n"
-                    "\t\tpop  r14\n"             // Адрес возврата
+    fprintf (file,  ".%s:\n\n"                  // Имя функции
+                    "\t\tpop  r14\n"            // Адрес возврата
                     "\t\tpush rsp\n"
-                    "\t\tpop  rbx\n"             // Адрес, где хранятся аргументы
-                    "\t\tpush rsp\n"
+                    "\t\tpop  rbx\n"            // Адрес, где хранятся аргументы
+                    "\t\tadd  rbx, %d\n"        // Смещение на начало переменных
+                    "\t\tpush rsp\n"            
                     "\t\tpop  r13\n"
-                    "\t\tadd  r13, %d\n"         // Место под все переменные и параметры
+                    "\t\tsub  r13, %d\n"        // Выделено место под все переменные и параметры
                     "\t\tpush r13\n"
-                    "\t\tpop  rsp\n", node->data.ident.ident_name, params_counter * 8);
+                    "\t\tpop  rsp\n", node->data.ident.ident_name, node->data.ident.ident_val.unsigned_type * 8, node->data.ident.ident_num * 8);
 
     RecursyTreeRead (node->left, file);
     RecursyTreeRead (node->right, file);
@@ -87,17 +84,6 @@ NODE * InitAsmFunc (NODE * node, FILE * file)
                    "\t\tret\n");
 
     return node->right;
-}
-
-void CountParams (NODE * node, size_t * n_params)
-{
-    my_assert (node && n_params);
-
-    if (node->right != NULL) CountParams (node->right, n_params);
-    
-    *n_params += 1;
-
-    return;
 }
 
 NODE * RecursyTreeRead (NODE * node, FILE * file)
@@ -112,7 +98,7 @@ NODE * RecursyTreeRead (NODE * node, FILE * file)
     if (node->node_type == FUNC_IDENT)
         printf ("func ident: %s & %d\n", node->data.ident.ident_name, node->data.ident.ident_val);
     
-
+// TD добавить обработку char *
     switch (node->node_type)
     {
         case NUM:
@@ -134,7 +120,13 @@ NODE * RecursyTreeRead (NODE * node, FILE * file)
         case PARAM:
         case IDENT:
         {
-            fprintf (file, "\t\tpush qword [r15 + %d]\n", node->data.ident.ident_num * 8);
+            fprintf (file, "\t\tpush ");
+
+            if (node->data.ident.ident_data_type == SIGNED_INT || 
+                node->data.ident.ident_data_type == UNSIGNED_INT)   fprintf (file, "word");
+            else if  (node->data.ident.ident_data_type == DOUBLE)   fprintf (file, "qword");
+
+            fprintf (file, " [rbx + %d]\n", node->data.ident.ident_num * 8);
 
             return NULL;
         }
@@ -264,13 +256,13 @@ void GenOpCode (NODE * node, FILE * file)
 
             break;
         }
-        case EQUALSE:
+        case EQUALS:
         {
-            int ident_num = node->left->data.ident.ident_val;
+            int ident_num = node->left->data.ident.ident_num;
             
             RecursyTreeRead (node->right, file);
 
-            fprintf (file, "\t\tpop qword [r15 - %d]\n", node->left->data.ident.ident_num * 8);
+            fprintf (file, "\t\tpop qword [rbx + %d]\n", node->left->data.ident.ident_num * 8);
 
             break;
         }
@@ -306,7 +298,7 @@ void GenOpCode (NODE * node, FILE * file)
         }
         case RETURN:
         {
-            fprintf (file, "\t\tpush r15\n"
+            fprintf (file, "\t\tpush r14\n"
                            "\t\tret\n");
 
             break;

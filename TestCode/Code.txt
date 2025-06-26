@@ -1,17 +1,19 @@
-shema_buhicha main (papa)
+shema_buhicha entry (papa)
 {
-    mama piva_z factorial (5) vodka
+    size_t mama piva_z factorial (5) vodka
 
     rvota mama vodka
 }
 
 shema_buhicha factorial (num)
 {
-    mnogo piva_z num
+    int mnogo piva_z num vodka
 
     esli_krepkost_alko (num > 1)
     {
-        mnojit piva_z factorial (num - 1) vodka
+        num piva_z num - 1 vodka
+
+        int mnojit piva_z factorial (num) vodka
 
         mnogo piva_z mnogo * mnojit vodka
     }

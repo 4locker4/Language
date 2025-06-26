@@ -4,8 +4,113 @@ section .text
 
 		call entry
 		hlt
+.entry:
+
+		pop  r14					; вытащили адрес возврата
+		push rsp					; взяли адрес стека для хранения переменных
+		pop  rbx					
+		add  rbx, 8					; вычли 8, так как был передан 1 параметр
+		push rsp				
+		pop  r13
+		sub  r13, 16
+		push r13	
+		pop  rsp					; новый адрес стека
+		push  [rbx + 0]
+		push  [rbx + 0]
+call .factorial
+		pop qword [rbx + 8]
+		push r14
+		ret
+
+		push r14
+		ret
+.factorial:
+
+		pop  r14
+		push rsp
+		pop  rbx
+		sub  rbx, 8
+		push rsp
+		pop  r13
+		add  r13, 24
+		push r13
+		pop  rsp
+		push  [rbx + 0]
+		push  [rbx + 0]
+		pop qword [rbx + 8]
+		push  [rbx + 0]
+		push 1
+		push  [rbx + 0]
+		push 1
+		pop r11
+		pop r12
+		sub r12, r11
+		push r12
+		pop qword [rbx + 0]
+		push  [rbx + 0]
+call .factorial
+		pop qword [rbx + 16]
+		push word [rbx + 8]
+		push word [rbx + 16]
+		pop r11
+		pop rax
+		mul r11
+		push rax
+		pop qword [rbx + 8]
+
+		jmp .end_if_0
+	.if_1:
+		push  [rbx + 0]
+		push  [rbx + 0]
+		push 1
+		pop r11
+		pop r12
+		sub r12, r11
+		push r12
+		push  [rbx + 0]
+call .factorial
+		pop qword [rbx + 16]
+		push word [rbx + 8]
+		push word [rbx + 16]
+		pop r11
+		pop rax
+		mul r11
+		push rax
+		pop qword [rbx + 8]
+
+		jmp .end_if_0
+	.if_2:
+		push word [rbx + 16]
+		push  [rbx + 0]
+call .factorial
+		push word [rbx + 8]
+		push word [rbx + 16]
+		pop r11
+		pop rax
+		mul r11
+		push rax
+		pop qword [rbx + 8]
+
+		jmp .end_if_0
+	.if_3:
+		push word [rbx + 8]
+		push word [rbx + 8]
+		push word [rbx + 16]
+		pop r11
+		pop rax
+		mul r11
+		push rax
+
+		jmp .end_if_0
+	.if_4:
+	.end_if_0:
+		push r14
+		ret
+
+		push r14
+		ret
 section .data
 
 	mem: 
 
- 		 times 120 dq 0
+ 		 times 8 dq 0

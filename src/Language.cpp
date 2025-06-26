@@ -19,7 +19,7 @@ int main ()
     printf ("end of token filling\n");
 
     table->tree = GetFunctions (table->tokens_array, &ip);
-
+    COLOR_PRINT (GREEN, "Complite\n");
     GraphDump (table->tree, "./GraphDump.dot");
     system ("dot -Tsvg GraphDump.dot -o GraphDump.svg");
 

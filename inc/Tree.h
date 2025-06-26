@@ -28,7 +28,7 @@ enum FUNC_TYPE
 enum ENUM_IDENT_DATA_TYPE
 {
     NULL_TYPE    = 0,
-    UNSIGNED_INT = 1,
+    UNSIGNED_INT = 1,                                               // Здесь также хранится количество параметров функции
     SIGNED_INT   = 2,
     DOUBLE       = 3,
     CHAR         = 4
@@ -45,10 +45,10 @@ typedef union ID_VAL_TYPE
 
 typedef struct
 {
-    char   ident_name[32] = {};
+    char ident_name[32] = {};
 
     ID_VAL_TYPE          ident_val;
-    size_t               ident_num       = -1;
+    size_t               ident_num       = -1;                      // Здесь хранится количество переменных функции
     ENUM_IDENT_DATA_TYPE ident_data_type = NULL_TYPE;
 
 } IDENT_DATA;
@@ -83,8 +83,8 @@ enum OPERATORS
     MUL  = '*',
     DIV  = '/',
     END  = ';',
-    EQUALSE       = '=',
-    EQ_EQUALSE    = 'E',
+    EQUALS        = '=',
+    EQ_EQUALS     = 'E',
     OPEN_BRACKET  = '(',
     CLOSE_BRACKET = ')',
     SPLIT         = ',',
@@ -106,6 +106,8 @@ enum OPERATORS
     AND           = 'a',
 
     RETURN        = 'r',
+
+    START_TEXT    = '"'
 };
 
 typedef struct
@@ -125,6 +127,7 @@ enum NODE_TYPES
     NOT_INITED = 0,
     IDENT,
     NUM,
+    STRING,
     OP,
     FUNC_IDENT,
     FUNC_CALL,
@@ -148,8 +151,9 @@ typedef struct NODE
 
 typedef struct
 {
-    const char *    name    = NULL;
-    OPERATORS token   = NOT_OPERATOR;
+    const char * name    = NULL;
+    OPERATORS    token   = NOT_OPERATOR;
+    size_t       length  = 0;
 } OP_DATA;
 
 typedef struct
@@ -169,7 +173,7 @@ typedef struct
     OP_DATA if_             = {};
     OP_DATA while_          = {};
     OP_DATA def_func        = {};
-    OP_DATA equalse         = {};
+    OP_DATA equals          = {};
     OP_DATA split           = {};
     OP_DATA ret             = {};
     OP_DATA inp             = {};
@@ -182,7 +186,8 @@ typedef struct
     OP_DATA or_             = {};
     OP_DATA and_            = {};
     OP_DATA start_func      = {};
-    OP_DATA eq_equalse      = {};
+    OP_DATA end_func        = {};
+    OP_DATA eq_equals       = {};
 } ALL_OPS_DATAS;
 
 typedef struct 
@@ -212,45 +217,58 @@ typedef struct
 
 // ============================================= END =============================================
 
-NODE *      GetFunctions                (TOKEN * token_table, size_t * ip);
-inline char * DefFunc                     (TOKEN_TABLE * table, char * text, size_t * ip);
+char *        DefFunc                   (TOKEN_TABLE * table, char * text, size_t * ip);
+char *        ReadBody                  (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ids_table, char * text, size_t * ip);
+char *        ProcessCharIdent          (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table, char * text, size_t * ip);
+char *        ProcessAlphas             (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  char * text, size_t * ip);
+char *        ProcessGettingParameters  (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table, char * text, size_t * ip);
+char *        ProcessInitIdent          (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table, char * text, size_t * ip, ENUM_IDENT_DATA_TYPE id_type_enum, size_t offset);
+inline char * ProcessCycles             (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table, OPERATORS op_type, char * text, size_t * ip);
+char *        ProcessConditions         (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  char * text, size_t * ip);
+size_t        FindRepitedIds            (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table, char * text);
+inline char * ProcessNums               (TOKEN_TABLE * table, char * text, size_t * ip);
+char *        FillParameters            (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  char * text, size_t * ip, size_t func_ip);
 
-NODE *      GetFunc                     (TOKEN * token_table, size_t * ip);
 
-NODE *      GetAllParameters            (TOKEN * token_table, size_t * ip, FUNC_TYPE type, size_t * n_params);
-NODE *      GetParam                    (TOKEN * token_table, size_t * ip, FUNC_TYPE type, size_t * n_params);
+NODE *        GetFunctions              (TOKEN * token_table, size_t * ip);
+inline char * DefFunc                   (TOKEN_TABLE * table, char * text, size_t * ip);
 
-NODE *      GetBodyOps                  (TOKEN * token_table, size_t * ip);
-NODE *      GetAction                   (TOKEN * token_table, size_t * ip);
+NODE *        GetFunc                   (TOKEN * token_table, size_t * ip);
 
-NODE *      GetFuncCall                 (TOKEN * token_table, size_t * ip);
+NODE *        GetAllParameters          (TOKEN * token_table, size_t * ip, FUNC_TYPE type, size_t * n_params);
+NODE *        GetParam                  (TOKEN * token_table, size_t * ip, FUNC_TYPE type, size_t * n_params);
 
-NODE *      GetOp                       (TOKEN * token_table, size_t * ip);
-NODE *      GetReturn                   (TOKEN * token_table, size_t * ip);
-NODE *      GetIf                       (TOKEN * token_table, size_t * ip);
-NODE *      GetWhile                    (TOKEN * token_table, size_t * ip);
-NODE *      GetPrint                    (TOKEN * token_table, size_t * ip);
+NODE *        GetBodyOps                (TOKEN * token_table, size_t * ip);
+NODE *        GetAction                 (TOKEN * token_table, size_t * ip);
 
-NODE *      GetCompare                  (TOKEN * token_table, size_t * ip);
-NODE *      GetCondition                (TOKEN * token_table, size_t * ip);
+NODE *        GetFuncCall               (TOKEN * token_table, size_t * ip);
 
-NODE *      GetEqualse                  (TOKEN * token_table, size_t * ip);
+NODE *        GetOp                     (TOKEN * token_table, size_t * ip);
+NODE *        GetReturn                 (TOKEN * token_table, size_t * ip);
+NODE *        GetIf                     (TOKEN * token_table, size_t * ip);
+NODE *        GetWhile                  (TOKEN * token_table, size_t * ip);
+NODE *        GetPrint                  (TOKEN * token_table, size_t * ip);
 
-NODE *      GetID                       (TOKEN * token_table, size_t * ip);
-NODE *      GetExpression               (TOKEN * token_table, size_t * ip);
-NODE *      GetT                        (TOKEN * token_table, size_t * ip);
-NODE *      GetDegree                   (TOKEN * token_table, size_t * ip);
-NODE *      GetMathFunc                 (TOKEN * token_table, size_t * ip);
-NODE *      GetP                        (TOKEN * token_table, size_t * ip);
-NODE *      GetTerm                     (TOKEN * token_table, size_t * ip);
-int         SyntaxError                 (TOKEN * token_table, size_t * ip, const char * func_name);
+NODE *        GetCompare                (TOKEN * token_table, size_t * ip);
+NODE *        GetCondition              (TOKEN * token_table, size_t * ip);
 
-NODE *      CallocNode                  (NODE * left_node, NODE * right_node);
-NODE *      NewNumNode                  (NODE_TYPES type, int elem, NODE * left_node, NODE * right_node);
-NODE *      NewIdentNode                (NODE_TYPES type, IDENT_DATA ident, NODE * left_node, NODE * right_node);
-NODE *      NewOpNode                   (NODE_TYPES type, OPERATORS op, NODE * left_node, NODE * right_node);
+NODE *        GetEquals                 (TOKEN * token_table, size_t * ip);
 
-int         GraphDump                   (NODE * node, const char * file_name);
-int         RecurcyDumpFill             (FILE * file, NODE * node);
+NODE *        GetExpression             (TOKEN * token_table, size_t * ip);
+NODE *        GetT                      (TOKEN * token_table, size_t * ip);
+NODE *        GetDegree                 (TOKEN * token_table, size_t * ip);
+NODE *        GetMathFunc               (TOKEN * token_table, size_t * ip);
+NODE *        GetP                      (TOKEN * token_table, size_t * ip);
+NODE *        GetTerm                   (TOKEN * token_table, size_t * ip);
+int           SyntaxError               (TOKEN * token_table, size_t * ip, const char * func_name);
+
+NODE *        CallocNode                (NODE * left_node, NODE * right_node);
+NODE *        NewStringNode             (char * elem, NODE * left_node, NODE * right_node);
+NODE *        NewNumNode                (NODE_TYPES type, int elem, NODE * left_node, NODE * right_node);
+NODE *        NewIdentNode              (NODE_TYPES type, IDENT_DATA ident, NODE * left_node, NODE * right_node);
+NODE *        NewOpNode                 (NODE_TYPES type, OPERATORS op, NODE * left_node, NODE * right_node);
+
+int           GraphDump                 (NODE * node, const char * file_name);
+int           RecurcyDumpFill           (FILE * file, NODE * node);
 
 #endif

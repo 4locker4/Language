@@ -58,6 +58,7 @@ typedef struct
 // ============================== IDENTIFICATORS TABLE DATA STRUCT ===============================
 
 const size_t IDS_TABLE_SIZE_DELTA = 5;
+const size_t FUNC_DELTA           = 2;
 
 typedef struct
 {

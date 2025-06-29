@@ -6,6 +6,7 @@ const char * GOD_SAY_YES_COLOR  = "#B2EC5D";
 /*
 При парсинге сделать везде один пробел
 */
+static size_t n_funcs = 0;
 
 TOKEN_TABLE * TableCtor (const char * file_with_data)
 {
@@ -242,6 +243,8 @@ TOKEN * FillTokenTypes (TOKEN_TABLE * table)
 
         text = DefFunc (table, text, &ip);
 
+        n_funcs++;
+
         printf ("IP = %d\n", ip);
     }
         
@@ -258,6 +261,11 @@ char * DefFunc (TOKEN_TABLE * table, char * text, size_t * ip)
 
     size_t len_counter = 0;
     size_t func_ip     = *ip + 1;
+
+    IDENTIFICATORS_TABLE ids_table = {};
+
+    ids_table.existing_ids = (size_t *) calloc (IDS_TABLE_SIZE_DELTA, sizeof (size_t));
+    my_assert (ids_table.existing_ids);
 
     table->tokens_array[*ip].token_type = OP;
     table->tokens_array[*ip].token.op   = DEF_FUNC;
@@ -299,14 +307,7 @@ char * DefFunc (TOKEN_TABLE * table, char * text, size_t * ip)
 
 // ========================================= FILL PARAMS =========================================
 
-    IDENTIFICATORS_TABLE ids_table = {};
-
-    ids_table.existing_ids = (size_t *) calloc (IDS_TABLE_SIZE_DELTA, sizeof (size_t));
-    my_assert (ids_table.existing_ids);
-
     text = FillParameters (table, &ids_table, text, ip, func_ip);
-
-    table->tokens_array[func_ip].token.ident.ident_val.unsigned_type = ids_table.free_box;
 
 // ============================================= END =============================================
             
@@ -325,11 +326,11 @@ char * DefFunc (TOKEN_TABLE * table, char * text, size_t * ip)
 
 // ======================================== READ FUNC BODY =======================================
 
-    text = ReadBody (table, &ids_table, text, ip);
+    text = ReadBody (table, &func_data_table->ids_table, text, ip);
 
     SKIP_SPACES ();
 
-    table->tokens_array[func_ip].token.ident.ident_num = ids_table.free_box;
+    table->tokens_array[func_data_table->func_ip].token.ident.ident_num = ids_table.free_box;
 
     return text;
 }
@@ -648,8 +649,6 @@ char * ProcessGettingParameters (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ide
         if (isalpha (*text) || *text == '_')
         {
             table->tokens_array[*ip] = table->tokens_array[FindRepitedIds (table, ident_table, text)];
-
-            *ip += 1;
             
             SKIP_IDENT ();
         }
@@ -658,8 +657,6 @@ char * ProcessGettingParameters (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ide
             table->tokens_array[*ip].token_type = NUM;
 
             table->tokens_array[*ip].token.val = strtol (text, &text, 10);
-
-            *ip += 1;
         }
         else if (*text == SPLIT)
         {
@@ -668,8 +665,6 @@ char * ProcessGettingParameters (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ide
             table->tokens_array[*ip].token.op   = SPLIT;
 
             text++;
-            
-            *ip += 1;
         }
         else if (*text == CLOSE_BRACKET)
         {
@@ -689,6 +684,8 @@ char * ProcessGettingParameters (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ide
 
             exit (1);
         }
+
+        *ip += 1;
     }
 }
 
@@ -776,21 +773,21 @@ char * ProcessConditions (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_tabl
             table->tokens_array[*ip].token_type = OP;
             table->tokens_array[*ip].token.op   = AND;
 
-            text += table->ops_data.and_.length - 1;
+            text += table->ops_data.and_.length;
         }
         else if (! strncmp (text, table->ops_data.or_.name, table->ops_data.or_.length))
         {
             table->tokens_array[*ip].token_type = OP;
             table->tokens_array[*ip].token.op   = OR;
 
-            text += table->ops_data.or_.length - 1;
+            text += table->ops_data.or_.length;
         }
         else if (! strncmp (text, table->ops_data.eq_equals.name, table->ops_data.eq_equals.length))
         {
             table->tokens_array[*ip].token_type = OP;
             table->tokens_array[*ip].token.op   = EQ_EQUALS;
 
-            text += table->ops_data.eq_equals.length - 1;
+            text += table->ops_data.eq_equals.length;
         }
         else if (*text == CLOSE_BRACKET)
         {
@@ -853,6 +850,14 @@ char * ProcessConditions (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_tabl
 
                     break;
                 }
+                case EQUALS:
+                {
+                    table->tokens_array[*ip].token.op  =  table->ops_data.eq_equals.token;
+
+                    text += 2;
+
+                    break;
+                }
                 default:
                 {
                     COLOR_PRINT (RED, "ERROR! There is unknown symbol in condition: <%s>\n", text - 1);
@@ -903,16 +908,68 @@ inline char * ProcessNums (TOKEN_TABLE * table, char * text, size_t * ip)
 
 char * FillParameters (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  char * text, size_t * ip, size_t func_ip)
 {
-    size_t n_params = 0;
     size_t string_len = 0;
 
     char * pointer_to_ident_start = NULL;
 
     while (true)
     {
-        table->tokens_array[*ip].token_type = PARAM;
+        SKIP_SPACES ();
 
-        n_params++;
+        if (*text == CLOSE_BRACKET)
+        {
+            table->tokens_array[*ip].token_type = OP;
+            table->tokens_array[*ip].token.op   = CLOSE_BRACKET;
+
+            *ip += 1;
+
+            text++;
+            
+            return text;
+        }
+
+        if (! strncmp (text, "size_t ", sizeof ("size_t")))
+        {
+            table->n_tokens--;
+            
+            table->tokens_array[*ip].token.ident.ident_data_type = UNSIGNED_INT;
+
+            text += sizeof ("size_t");
+        }
+        else if (! strncmp (text, "int ", sizeof ("int")))
+        {
+            table->n_tokens--;
+            
+            table->tokens_array[*ip].token.ident.ident_data_type = SIGNED_INT;
+
+            text += sizeof ("int");
+        }
+        else if (! strncmp (text, "double ", sizeof ("double")))
+        {
+            table->n_tokens--;
+    
+            table->tokens_array[*ip].token.ident.ident_data_type = DOUBLE;
+
+            text += sizeof ("double");
+        }
+        else if (! strncmp (text, "char * ", sizeof ("char *")))
+        {
+            table->n_tokens -= 2;
+    
+            table->tokens_array[*ip].token.ident.ident_data_type = CHAR;
+
+            text += sizeof ("char *");
+        }
+        else
+        {
+            COLOR_PRINT (RED, "ERROR! Wrong param type\n");
+
+            exit (1);
+        }
+
+        SKIP_SPACES ();
+
+        table->tokens_array[*ip].token_type = PARAM;
 
         ADD_ID_INTO_TABLE ()
 
@@ -935,7 +992,7 @@ char * FillParameters (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table, 
             table->tokens_array[*ip].token_type = OP;
             table->tokens_array[*ip].token.op   = CLOSE_BRACKET;
             
-            table->tokens_array[func_ip].token.ident.ident_val.unsigned_type = n_params;
+            table->tokens_array[func_ip].token.ident.ident_val.unsigned_type = ident_table->free_box;
 
             text++;
 
@@ -948,6 +1005,8 @@ char * FillParameters (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table, 
         table->tokens_array[*ip].token.op   = SPLIT;
 
         *ip += 1;
+
+        text++;
     }
 }
 
@@ -1018,8 +1077,19 @@ NODE * GetAllParameters (TOKEN * token_table, size_t * ip, FUNC_TYPE type, size_
 {
     my_assert (token_table);
     my_assert (ip);
-        
-    NODE * params_root = GetParam (token_table, ip, type, n_params);
+    
+    NODE * params_root = NULL;
+
+    if (IS_TYPE_ (OP) && OP_TYPE_ (CLOSE_BRACKET))
+    {
+        *ip += 1;
+
+        params_root = NewOpNode (OP, END, NULL, NULL);
+
+        return params_root;
+    }
+
+    params_root = GetParam (token_table, ip, type, n_params);
 
     if (IS_TYPE_ (OP) && OP_TYPE_ (SPLIT))
     {
@@ -1056,6 +1126,8 @@ NODE * GetParam (TOKEN * token_table, size_t * ip, FUNC_TYPE type, size_t * n_pa
 
         *n_params += 1;
     }
+    else if (IS_TYPE_ (NUM))
+        param = NewNumNode (NUM, token_table[*ip].token.val, NULL, NULL);
     else
         param = MAKE_PARAM_TYPE_ (IDENT)
 
@@ -1312,13 +1384,21 @@ NODE * GetWhile (TOKEN * token_table, size_t * ip)
 
     *ip += 1;
 
+    if (IS_TYPE_ (OP) && OP_TYPE_ (OPEN_BRACKET))   *ip += 1;
+    else                                            SyntaxError (token_table, ip, "GitWHile, it`s not op in open bracket\n");
+
     node->left = GetCondition (token_table, ip);
+
+    if (IS_TYPE_ (OP) && OP_TYPE_ (CLOSE_BRACKET))  *ip += 1;
+    else                                            SyntaxError (token_table, ip, "GitWHile, it`s not close bracket\n");
+    if (IS_TYPE_ (OP) && OP_TYPE_ (START_FUNC))     *ip += 1;
+    else                                            SyntaxError (token_table, ip, "GitWHile, it`s not start_func\n");
 
     node->right = GetBodyOps (token_table, ip);
 
     node->left->parent  = node;
     node->right->parent = node;
-
+    
     return node;
 }
 
@@ -1635,6 +1715,8 @@ NODE * NewIdentNode (NODE_TYPES type, IDENT_DATA ident, NODE * left_node, NODE *
     node->data.ident  = ident;
     node->node_type   = type;
 
+    COLOR_PRINT (GREEN, "ident type: %d\n", node->data.ident.ident_data_type);
+
     return node;
 }
 
@@ -1714,11 +1796,17 @@ int RecurcyDumpFill (FILE * file, NODE * node)
             CASES_ (LESS)
             CASES_ (GREATER_OR_EQ)
             CASES_ (LESS_OR_EQ)
+            CASES_ (EQ_EQUALS)
+            CASES_ (START_FUNC)
+            CASES_ (RETURN)
+            CASES_ (END_FUNC)
+            CASES_ (OPEN_BRACKET)
+            CASES_ (CLOSE_BRACKET)
             CASES_ (END)
             default:
             {
-                text = "z";
-
+                text = "CHORT";
+                
                 break;
             }
         }

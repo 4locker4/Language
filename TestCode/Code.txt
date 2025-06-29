@@ -1,11 +1,11 @@
-shema_buhicha entry (papa)
+shema_buhicha entry ()
 {
-    size_t mama piva_z factorial (5) vodka
+    size_t mama piva_z factorial (4) vodka
 
     rvota mama vodka
 }
 
-shema_buhicha factorial (num)
+shema_buhicha factorial (int num)
 {
     int mnogo piva_z num vodka
 

@@ -23,12 +23,17 @@ run:
 	@echo -e -en '\E[;32m'"\n\t\t\t\033[1mRunning...\t\t\t\033[0m\n\n"
 	rm -rf GraphDump.html
 	../Language/Language.exe
+	mv ./LanguaegeList/AsmCode.txt ./LanguaegeList/AsmCode.asm
 	
 $(execute): $(objects) 
 	$(compiler) $(objects) -o $@
 
 .cpp.o: $(includes)
 	@$(compiler) $(flags) $< -o $@
+
+asm_comp:
+	nasm -f elf64 -g -F dwarf ./LanguaegeList/AsmCode.asm  -o factorial.o
+	gcc -no-pie -g factorial.o -o factorial
 
 clean:
 	rm -rf ./src/*.o

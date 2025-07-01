@@ -260,12 +260,13 @@ char * DefFunc (TOKEN_TABLE * table, char * text, size_t * ip)
 // ===================================== FUNCTION DEFENITION =====================================
 
     size_t len_counter = 0;
-    size_t func_ip     = *ip + 1;
 
     IDENTIFICATORS_TABLE ids_table = {};
 
     ids_table.existing_ids = (size_t *) calloc (IDS_TABLE_SIZE_DELTA, sizeof (size_t));
     my_assert (ids_table.existing_ids);
+
+    ids_table.func_ip = *ip + 1;
 
     table->tokens_array[*ip].token_type = OP;
     table->tokens_array[*ip].token.op   = DEF_FUNC;
@@ -307,7 +308,7 @@ char * DefFunc (TOKEN_TABLE * table, char * text, size_t * ip)
 
 // ========================================= FILL PARAMS =========================================
 
-    text = FillParameters (table, &ids_table, text, ip, func_ip);
+    text = FillParameters (table, &ids_table, text, ip, ids_table.func_ip);
 
 // ============================================= END =============================================
             
@@ -326,11 +327,11 @@ char * DefFunc (TOKEN_TABLE * table, char * text, size_t * ip)
 
 // ======================================== READ FUNC BODY =======================================
 
-    text = ReadBody (table, &func_data_table->ids_table, text, ip);
+    text = ReadBody (table, &ids_table, text, ip);
 
     SKIP_SPACES ();
 
-    table->tokens_array[func_data_table->func_ip].token.ident.ident_num = ids_table.free_box;
+    table->tokens_array[ids_table.func_ip].token.ident.ident_num = ids_table.free_box;
 
     return text;
 }

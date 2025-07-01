@@ -1,7 +1,11 @@
 {
     "files.associations": {
         "cmath": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "bit": "cpp",
+        "compare": "cpp",
+        "limits": "cpp",
+        "new": "cpp"
     },
     "makefile.configureOnOpen": false
 }

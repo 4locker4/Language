@@ -66,6 +66,8 @@ typedef struct
     size_t   free_box     = 0;
 
     size_t * existing_ids = NULL;
+
+    size_t   func_ip      = 0;
 } IDENTIFICATORS_TABLE;
 
 // ==================================== OPERATORS DATA STRUCTS ===================================

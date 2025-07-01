@@ -5,6 +5,12 @@
 #include "ELF64Flags.hpp"
 
 #include <stdint.h>
+#include <elf.h>
+#include "emitters.hpp"
+
+#include "../../inc/Utils.h"
+#include "../../inc/Asserts.h"
+#include "../../inc/Tree.h"
 
 typedef struct {
     uint8_t  e_ident[16];    // ELF-идентификация
@@ -47,32 +53,27 @@ typedef struct {
     uint64_t sh_entsize;    // Размер элемента таблицы
 } Elf64_Shdr;
 
-/*
- * Определяет область видимости символа.
- */
-typedef enum {
-    STB_LOCAL     = 0,   // Символ локальный
-    STB_GLOBAL    = 1,   // Символ глобальный
-    STB_WEAK      = 2,   // Слабый символ
-    STB_LOOS      = 10,  // Зарезервировано для ОС-специфичных значений
-    STB_HIOS      = 12,  // Верхняя граница ОС-специфичных значений
-    STB_LOPROC    = 13,  // Зарезервировано для процессор-специфичных значений
-    STB_HIPROC    = 15   // Верхняя граница процессор-специфичных значений
-} Elf64_SymBind;
+const char SEPARATER = ' ';
 
-/*
- * Определяет природу символа (функция, данные и т.д.).
- */
-typedef enum {
-    STT_NOTYPE    = 0,   // Тип не указан
-    STT_OBJECT    = 1,   // Символ представляет данные (глобальная переменная)
-    STT_FUNC      = 2,   // Символ представляет функцию
-    STT_SECTION   = 3,   // Символ связан с секцией
-    STT_FILE      = 4,   // Имя исходного файла
-    STT_LOOS      = 10,  // Зарезервировано для ОС-специфичных значений
-    STT_HIOS      = 12,  // Верхняя граница ОС-специфичных значений
-    STT_LOPROC    = 13,  // Зарезервировано для процессор-специфичных значений
-    STT_HIPROC    = 15   // Верхняя граница процессор-специфичных значений
-} Elf64_SymType;
+typedef struct
+{
+    char * ident_name = NULL;
+    size_t ident_num  = 0;
+} IDENT_INFO;
+
+TOKEN *             FillTokenTypes            (TOKEN_TABLE * table);
+void                CountTokens               (TOKEN_TABLE * table);
+ALL_OPS_DATAS *     OpsCtor                   (TOKEN_TABLE * table);
+TOKEN_TABLE *       TableCtor                 (const char * file_with_data);
+
+void    ReadTree            (TOKEN_TABLE * token_table);
+NODE *  RecursyTreeRead     (NODE * node, FILE * file);
+void    GenOpCode           (NODE * node, FILE * file);
+void    IfCodeGen           (NODE * node, FILE * file);
+void    WhileCodeGen        (NODE * node, FILE * file);
+NODE *  InitAsmFunc         (NODE * node, FILE * file);
+
+void AsmOpsCompare (NODE * node, FILE * file, OPERATORS mode, int label);
+void AsmConditional (NODE * node, FILE * file, OPERATORS mode, int label);
 
 #endif // ELF_64_GEN

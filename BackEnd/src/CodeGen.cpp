@@ -4,7 +4,6 @@ static int IF_COUNTER    = 0;
 static int WHILE_COUNTER = 0;
 
 static size_t lable_counter    = 0;
-static size_t n_params_in_func = 0;
 
 void ReadTree (TOKEN_TABLE * token_table)
 {
@@ -17,13 +16,13 @@ void ReadTree (TOKEN_TABLE * token_table)
 
 //====================================== START CODEGEN ======================================
 
-    fprintf (asm_file, "global _start\n\n"                // Init asm prog
+    fprintf (asm_file, "global main\n\n"                // Init asm prog
                        "section .note.GNU-stack noexec\n"
                        "section .text\n\n", root->left->data.ident.ident_name);
 
-    fprintf (asm_file, "_start:\n"
+    fprintf (asm_file, "main:\n"
                        "\t\tcall .%s\n"                // Call entry func
-                       "\t\thlt\n", root->left->data.ident.ident_name);
+                       "\t\tjmp endprog\n", root->left->data.ident.ident_name);
 
 
     while (root->data.op != END)                        // Start func generation
@@ -33,7 +32,11 @@ void ReadTree (TOKEN_TABLE * token_table)
         root = root->right;
     }
 
-    fprintf (asm_file, "section .data\n\n"              // Add section data with all vars
+    fprintf (asm_file, "endprog:\n"
+                       "\t\tmov rax, 60\n"
+                       "\t\tmov rdi, 0\n"
+                        "\t\tsyscall\n\n"
+                       "section .data\n\n"              // Add section data with all vars
                        "\tmem: \n\n \t\t times %d dq 0", (token_table->n_idents + 1) * 8);
     
     fclose (asm_file);
@@ -72,21 +75,16 @@ NODE * InitAsmFunc (NODE * node, FILE * file)
     fprintf (file,  ".%s:\n\n"                                                              // Имя функции
                     "\t\tpop  r14               ; r14 - сохраняем адрес возврата\n"         // Адрес возврата
                     "\t\tpush rsp               ;----\n"
-                    "\t\tpop  rbx               ;    |--> создаем сегмент переменных\n"     // Адрес, где хранятся аргументы
-                    "\t\tadd  rbx, %d            ;----\n"                                   // Смещение на начало переменных
-                    "\t\tmov r13, rbx           ;------\n"            
+                    "\t\tpop  r15               ;    |--> создаем сегмент переменных\n"     // Адрес, где хранятся аргументы
+                    "\t\tadd  r15, %d            ;----\n"                                   // Смещение на начало переменных
+                    "\t\tmov r13, r15           ;------\n"            
                     "\t\tsub  r13, %d           ;      |--> новый адрес стека\n"            // Выделено место под все переменные и параметры
                     "\t\tpush r13               ;      |\n"
                     "\t\tpop  rsp               ;------\n\n"
                     "; ========================== START FUNC ==========================\n\n",
-                    node->data.ident.ident_name, node->data.ident.ident_val.unsigned_type * 8, node->data.ident.ident_num * 8);
-
-    n_params_in_func = node->data.ident.ident_num;
+                    node->data.ident.ident_name, (node->data.ident.ident_val.unsigned_type - 1) * 8, node->data.ident.ident_num * 8);
 
     RecursyTreeRead (node->right, file);
-
-    fprintf (file, "\t\tpush r14                ; адрес возврата\n"
-                   "\t\tret\n\n");
 
     return node->right;
 }
@@ -114,37 +112,29 @@ NODE * RecursyTreeRead (NODE * node, FILE * file)
         }
         case FUNC_CALL:
         {
-            fprintf (file,  "\t\tpush rbx\n"
-                            "\t\tpush r14\n");
+            fprintf (file,  "\t\tpush r15\n"
+                            "\t\tpush r14\n"
+                            "\t\tpush rsp\n");
 
             if (node->left) RecursyTreeRead (node->left, file);
 
             fprintf (file, "\n\t\tcall .%s\n\n", node->data.ident.ident_name);
 
             fprintf (file,  "\t\tpop rax\n"
-                            "\t\tpush rsp\n"
-                            "\t\tpop r15\n"
-                            "\t\tadd r15, %d\n"
-                            "\t\tpush r15\n"
+                            "\t\tpush qword [r15 + 8]\n"
                             "\t\tpop rsp\n"
                             "\t\tpop r14\n"
-                            "\t\tpop rbx\n"
-                            "\t\tpush rax\n", n_params_in_func * 8);
+                            "\t\tpop r15\n"
+                            "\t\tpush rax\n");
     
             return NULL;
         }
         case PARAM:
         case IDENT:
         {
-            fprintf (file, "\t\tpush ");
+            fprintf (file, "\t\tpush qword");
 
-            if (node->data.ident.ident_data_type       == SIGNED_INT || 
-                node->data.ident.ident_data_type       == UNSIGNED_INT)   fprintf (file, "word");
-            else if  (node->data.ident.ident_data_type == DOUBLE)         fprintf (file, "qword");
-            else
-                COLOR_PRINT (RED, "cant define ident type\n");
-
-            fprintf (file, " [rbx + %d]           ; переменная: %s\n", node->data.ident.ident_num * 8, node->data.ident.ident_name);
+            fprintf (file, " [r15 - %d]           ; переменная: %s\n", node->data.ident.ident_num * 8, node->data.ident.ident_name);
 
             return NULL;
         }
@@ -166,10 +156,12 @@ NODE * RecursyTreeRead (NODE * node, FILE * file)
 }
 
 #define EXPR_ASM(str)                                      \
-    RecursyTreeRead (node->left, file);              \
-    RecursyTreeRead (node->right, file);             \
+    RecursyTreeRead (node->left, file);                    \
+    RecursyTreeRead (node->right, file);                   \
                                                            \
-    fprintf (file,  "\t\tpop r11\n"                        \
+    fprintf (file,  "\t\txor r11, r11\n"                    \
+                    "\t\txor r12, r12\n"                   \
+                    "\t\tpop r11\n"                        \
                     "\t\tpop r12\n"                        \
                     "\t\t" str " r12, r11\n"               \
                     "\t\tpush r12\n");
@@ -313,7 +305,7 @@ void GenOpCode (NODE * node, FILE * file)
 
             RecursyTreeRead (node->right, file);
 
-            fprintf (file, "\t\tpop qword [rbx + %d]\n", node->left->data.ident.ident_num * 8);
+            fprintf (file, "\t\tpop qword [r15 - %d]\n", node->left->data.ident.ident_num * 8);
 
             fprintf (file, "; end EQUALS\n");
 
@@ -369,7 +361,7 @@ void GenOpCode (NODE * node, FILE * file)
         {
             fprintf (file, "\n; RETURN\n\n");
 
-            fprintf (file, "\t\tpush qword [rbx + %d]\n"
+            fprintf (file, "\t\tpush qword [r15 - %d]\n"
                            "\t\tpush r14\n"
                            "\t\tret\n", node->left->data.ident.ident_num * 8);
 

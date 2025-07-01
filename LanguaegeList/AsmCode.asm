@@ -1,18 +1,18 @@
-global _start
+global main
 
 section .note.GNU-stack noexec
 section .text
 
-_start:
+main:
 		call .entry
-		hlt
+		jmp endprog
 .entry:
 
 		pop  r14               ; r14 - сохраняем адрес возврата
 		push rsp               ;----
-		pop  rbx               ;    |--> создаем сегмент переменных
-		add  rbx, 0            ;----
-		mov r13, rbx           ;------
+		pop  r15               ;    |--> создаем сегмент переменных
+		add  r15, -8            ;----
+		mov r13, r15           ;------
 		sub  r13, 8           ;      |--> новый адрес стека
 		push r13               ;      |
 		pop  rsp               ;------
@@ -22,42 +22,37 @@ _start:
 
 ; EQUALSE
 
-		push rbx
+		push r15
 		push r14
+		push rsp
 		push 4
 
 		call .factorial
 
 		pop rax
-		push rsp
-		pop r15
-		add r15, 1
-		push r15
+		push qword [r15 + 8]
 		pop rsp
 		pop r14
-		pop rbx
+		pop r15
 		push rax
-		pop qword [rbx + 0]
+		pop qword [r15 - 0]
 ; end EQUALS
 
 ; RETURN
 
-		push qword [rbx + 0]
+		push qword [r15 - 0]
 		push r14
 		ret
 ; end RETURN
 
 
-		push r14                ; адрес возврата
-		ret
-
 .factorial:
 
 		pop  r14               ; r14 - сохраняем адрес возврата
 		push rsp               ;----
-		pop  rbx               ;    |--> создаем сегмент переменных
-		add  rbx, 8            ;----
-		mov r13, rbx           ;------
+		pop  r15               ;    |--> создаем сегмент переменных
+		add  r15, 0            ;----
+		mov r13, r15           ;------
 		sub  r13, 24           ;      |--> новый адрес стека
 		push r13               ;      |
 		pop  rsp               ;------
@@ -67,14 +62,14 @@ _start:
 
 ; EQUALSE
 
-		push word [rbx + 0]           ; переменная: num
-		pop qword [rbx + 8]
+		push qword [r15 - 0]           ; переменная: num
+		pop qword [r15 - 8]
 ; end EQUALS
 
 ; Start IF code
 
 ; ========================= START IF CONDITIONAL =========================
-		push word [rbx + 0]           ; переменная: num
+		push qword [r15 - 0]           ; переменная: num
 		push 1
 		pop r11
 		pop r12
@@ -88,35 +83,35 @@ _start:
 
 ; Make: SUB
 
-		push word [rbx + 0]           ; переменная: num
+		push qword [r15 - 0]           ; переменная: num
 		push 1
+		xor r11, r11
+		xor r12, r12
 		pop r11
 		pop r12
 		sub r12, r11
 		push r12
 ; end SUB
 
-		pop qword [rbx + 0]
+		pop qword [r15 - 0]
 ; end EQUALS
 
 ; EQUALSE
 
-		push rbx
+		push r15
 		push r14
-		push word [rbx + 0]           ; переменная: num
+		push rsp
+		push qword [r15 - 0]           ; переменная: num
 
 		call .factorial
 
 		pop rax
-		push rsp
-		pop r15
-		add r15, 3
-		push r15
+		push qword [r15 + 8]
 		pop rsp
 		pop r14
-		pop rbx
+		pop r15
 		push rax
-		pop qword [rbx + 16]
+		pop qword [r15 - 16]
 ; end EQUALS
 
 ; EQUALSE
@@ -124,8 +119,8 @@ _start:
 
 ; Make: MUL
 
-		push word [rbx + 8]           ; переменная: mnogo
-		push word [rbx + 16]           ; переменная: mnojit
+		push qword [r15 - 8]           ; переменная: mnogo
+		push qword [r15 - 16]           ; переменная: mnojit
 		pop r11
 		pop rax
 		mul r11
@@ -133,7 +128,7 @@ _start:
 
 ; end MUL
 
-		pop qword [rbx + 8]
+		pop qword [r15 - 8]
 ; end EQUALS
 
 	.if_1:
@@ -143,14 +138,16 @@ _start:
 
 ; RETURN
 
-		push qword [rbx + 8]
+		push qword [r15 - 8]
 		push r14
 		ret
 ; end RETURN
 
 
-		push r14                ; адрес возврата
-		ret
+endprog:
+		mov rax, 60
+		mov rdi, 0
+		syscall
 
 section .data
 

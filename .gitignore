@@ -1,0 +1,33 @@
+### --- Системные и временные файлы Linux --- ###
+.*                  
+*.swp               
+*.swo
+*.un~               
+~$*                 
+.directory          
+.Trash-*            
+.nfs*               
+
+### --- Бинарники и артефакты сборки --- ###
+*.o                 
+*.ko                
+*.so                
+*.a                 
+*.out               
+*.bin               
+core                
+/proc/              
+/sys/               
+/tmp/               
+
+### --- Кэш и логи --- ###
+*.log     
+*.cache   
+.cache/   
+.valgrind*
+
+### --- Конфиги IDE --- ###
+.vscode/ 
+
+### --- Git --- ###
+!.gitignore

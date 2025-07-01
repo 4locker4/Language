@@ -17,4 +17,32 @@ typedef enum {
     PF_R        = 0x4,      // Сегмент доступен для чтения (Read)
 } Elf64_SegmentFlags;
 
+enum
+{
+    NOT_R_ALPHA_REG = -1,
+
+    RAX = 0,
+    RCX = 1, 
+    RDX = 2,
+    RBX = 3,
+    RSP = 4,
+    RBP = 5,
+    RSI = 6,
+    RDI = 7
+}   RAX_RDI_NUMS;
+
+enum
+{
+    NOT_R_NUM_REG = -1,
+
+    R8  = 0,
+    R9  = 1,
+    R10 = 2,
+    R11 = 3,
+    R12 = 4,
+    R13 = 5,
+    R14 = 6,
+    R15 = 7
+}   R8_R15_NUMS;
+
 #endif //ELF_64_FLAGS

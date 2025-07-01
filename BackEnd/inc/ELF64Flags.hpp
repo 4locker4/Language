@@ -45,4 +45,9 @@ enum
     R15 = 7
 }   R8_R15_NUMS;
 
+enum
+{
+    
+}
+
 #endif //ELF_64_FLAGS

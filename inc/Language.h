@@ -21,7 +21,7 @@ ALL_OPS_DATAS *     OpsCtor                   (TOKEN_TABLE * table);
 TOKEN_TABLE *       TableCtor                 (const char * file_with_data);
 int                 CheckRepitedIdent         (TOKEN_TABLE * table, char * ident, size_t ip);
 
-void    ReadTree            (TOKEN_TABLE * token_table);
+void    ReadTree            (TOKEN_TABLE * token_table, const char * file_name);
 NODE *  RecursyTreeRead     (NODE * node, FILE * file);
 void    GenOpCode           (NODE * node, FILE * file);
 void    IfCodeGen           (NODE * node, FILE * file);
@@ -30,6 +30,5 @@ NODE *  InitAsmFunc         (NODE * node, FILE * file);
 
 void AsmOpsCompare (NODE * node, FILE * file, OPERATORS mode, int label);
 void AsmConditional (NODE * node, FILE * file, OPERATORS mode, int label);
-void CountParams (NODE * node, size_t * n_params);
 
 #endif

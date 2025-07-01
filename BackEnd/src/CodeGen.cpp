@@ -5,11 +5,11 @@ static int WHILE_COUNTER = 0;
 
 static size_t lable_counter    = 0;
 
-void ReadTree (TOKEN_TABLE * token_table)
+void ReadTree (TOKEN_TABLE * token_table, const char * file_name)
 {
     my_assert (token_table);
 
-    FILE * asm_file = fopen ("LanguaegeList/AsmCode.txt", "w+");
+    FILE * asm_file = fopen (file_name, "w+");
     my_assert (asm_file);
 
     NODE * root = token_table->tree;

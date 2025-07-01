@@ -1,12 +1,15 @@
 #include "../inc/Language.h"
 
-const char * MY_TRY     = "TestCode/Code.txt";
-const char * SQ_SOLVER  = "./SquareSolver.txt";
+const char * FACTORIAL_CODE  = "./FactorialTranslation/FactorialCode.txt";
+const char * FACTORIAL_NASM  = "./FactorialTranslation/FactorialNasm.txt";
+const char * FACTORIAL_DUMP  = "./FactorialTranslation/FactorialDump.dot";
+
+const char * SQ_SOLVER       = "TestCode/SquareSolver.txt";
 
 int main ()
 {
     printf ("Start\n");
-    TOKEN_TABLE * table = TableCtor (MY_TRY);
+    TOKEN_TABLE * table = TableCtor (FACTORIAL_CODE);
 
     printf ("%p - after ctor\n", table->tokens_array);
 
@@ -20,9 +23,10 @@ int main ()
 
     table->tree = GetFunctions (table->tokens_array, &ip);
     COLOR_PRINT (GREEN, "Complite\n");
-    GraphDump (table->tree, "./GraphDump.dot");
-    system ("dot -Tsvg GraphDump.dot -o GraphDump.svg");
 
-    ReadTree (table);
+    GraphDump (table->tree, FACTORIAL_DUMP);
+
+    ReadTree (table, FACTORIAL_NASM);
+
 }
 

@@ -12,7 +12,8 @@
 *.o                 
 *.ko                
 *.so                
-*.a                 
+*.a             
+*.exe    
 *.out               
 *.bin               
 core                

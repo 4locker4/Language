@@ -29,6 +29,29 @@ TOKEN_TABLE * TableCtor (const char * file_with_data)
     return table;
 }
 
+void TableDtor (TOKEN_TABLE * table)
+{
+    my_assert (table);
+
+    free (table->text);
+
+    free (table->tokens_array);
+
+    if (table->tree) TreeDestr (table->tree);
+
+    return;
+}
+
+int TreeDestr (NODE * node)
+{
+    if (node->left)  TreeDestr (node->left);
+    if (node->right) TreeDestr (node->right);
+
+    free (node);
+
+    return 0;
+}
+
 ALL_OPS_DATAS * OpsCtor (TOKEN_TABLE * table)
 {
     my_assert (table);
@@ -149,6 +172,10 @@ ALL_OPS_DATAS * OpsCtor (TOKEN_TABLE * table)
     table->ops_data.end_func.token       = END_FUNC;
     table->ops_data.end_func.length      = sizeof ("}") - 1;
 
+    table->ops_data.inp.name             = "cha_cha_skaju";
+    table->ops_data.inp.token            = INPUT;
+    table->ops_data.inp.length           = sizeof ("cha_cha_skaju") - 1;
+
     return 0;
 }
 
@@ -229,11 +256,6 @@ TOKEN * FillTokenTypes (TOKEN_TABLE * table)
     char * text = table->text;
 
     printf ("n_tokens: %d\n", table->n_tokens);
-
-    // IDENTIFICATORS_TABLE global_ids_table = {};
-
-    // global_ids_table.existing_ids = (size_t *) calloc (IDS_TABLE_SIZE_DELTA, sizeof (size_t));
-    // my_assert (global_ids_table.existing_ids);
 
 // ================================= START FILLING TOKENS TABLE ==================================
 
@@ -333,6 +355,8 @@ char * DefFunc (TOKEN_TABLE * table, char * text, size_t * ip)
 
     table->tokens_array[ids_table.func_ip].token.ident.ident_num = ids_table.free_box;
 
+    free (ids_table.existing_ids);
+
     return text;
 }
 
@@ -345,7 +369,15 @@ char * ReadBody (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ids_table, char * t
 
         if (isalpha (*text) || *text == '_')
             text = ProcessAlphas (table, ids_table, text, ip);
-        else if (isalnum (*text))
+        else if (*text == '-' && *(text + 1) == ' ')
+        {
+            table->tokens_array[*ip].token_type = OP;
+
+            text++;
+
+            table->tokens_array[*ip].token.op  =  table->ops_data.sub.token;
+        }
+        else if (*text == '-' || isalnum (*text))
             text = ProcessNums (table, text, ip);
         else
         {
@@ -356,8 +388,6 @@ char * ReadBody (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ids_table, char * t
                 case START_TEXT:
                 {                    
                     text = ProcessCharIdent (table, ids_table, text, ip);
-
-                    text++;
 
                     break;
                 }
@@ -445,8 +475,6 @@ char * ReadBody (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ids_table, char * t
                 {
                     table->tokens_array[*ip].token.op  =  table->ops_data.end_op.token;
 
-                    COLOR_PRINT (GREEN, "End of function\n");
-
                     return text;
                 }
                 default:
@@ -454,6 +482,8 @@ char * ReadBody (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ids_table, char * t
                     COLOR_PRINT (RED, "Error! Wrong operator!\n");
 
                     printf ("%s\n", text);
+
+                    TableDtor (table);
 
                     exit (1);
                 }
@@ -468,13 +498,13 @@ char * ProcessCharIdent (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table
 {
     size_t string_len = 0;
     char * pointer_to_ident_start = text;
-
+    
     table->tokens_array[*ip].token_type = STRING;
-    table->tokens_array[*ip].token.ident.ident_data_type = CHAR;    
+    table->tokens_array[*ip].token.ident.ident_data_type = CHAR;
 
     SKIP_UNTIL_(START_TEXT);
     
-    string_len = text - pointer_to_ident_start;
+    string_len = text - pointer_to_ident_start + 1;
 
     if (string_len > MAX_STRING_LENGHT)
     {
@@ -482,15 +512,19 @@ char * ProcessCharIdent (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table
         
         COLOR_PRINT (RED, "ERROR! String <%s> is more than appear (%d - max lenght)\n", pointer_to_ident_start, MAX_STRING_LENGHT);
 
+        TableDtor (table);
+
         exit (1);
     }
 
-    memcpy (table->tokens_array[*ip].token.ident.ident_name, pointer_to_ident_start, string_len);
-    table->tokens_array[*ip].token.ident.ident_name[string_len + 1] = '\0';
+    memcpy (table->tokens_array[*ip].token.ident.ident_name, pointer_to_ident_start, string_len - 1);
+    table->tokens_array[*ip].token.ident.ident_name[string_len] = '\0';
 
     table->tokens_array[*ip].token_size = string_len;
 
     COLOR_PRINT (GREEN, "%s\n", table->tokens_array[*ip].token.ident.ident_name)
+
+    text++;     // skip < " >
 
     return text;
 }
@@ -498,10 +532,10 @@ char * ProcessCharIdent (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table
 #define ADD_ID_INTO_TABLE()     table->tokens_array[*ip].token.ident.ident_num = ident_table->free_box;                                                             \
                                 ident_table->existing_ids[ident_table->free_box++] = *ip;                                                                           \
                                                                                                                                                                     \
-                                if (ident_table->table_size == ident_table->free_box)                                                                               \
+                                if (ident_table->table_size <= ident_table->free_box)                                                                               \
                                 {                                                                                                                                   \
-                                    ident_table->existing_ids = (size_t *) realloc (ident_table->existing_ids, ident_table->table_size + IDS_TABLE_SIZE_DELTA);     \
                                     ident_table->table_size  += IDS_TABLE_SIZE_DELTA;                                                                               \
+                                    ident_table->existing_ids = (size_t *) realloc (ident_table->existing_ids, ident_table->table_size * sizeof (u_int64_t));                            \
                                 }
 #define CHECK_IF_OP(get_nm)                                                                                                                                         \
                                 else if (! strncmp (text, table->ops_data.get_nm.name, table->ops_data.get_nm.length))                                              \
@@ -535,6 +569,7 @@ char * ProcessAlphas (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  
         printf ("end size_t\n");
 
         ADD_ID_INTO_TABLE ();
+        COLOR_PRINT (YELLOW, "ident type = %d\n", table->tokens_array[*ip].token.ident.ident_data_type);
 
         printf ("Added into var table\n\n");
     }
@@ -549,6 +584,7 @@ char * ProcessAlphas (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  
         printf ("end int\n");
 
         ADD_ID_INTO_TABLE ();
+        COLOR_PRINT (YELLOW, "ident type = %d\n", table->tokens_array[*ip].token.ident.ident_data_type);
 
         printf ("Added into var table\n\n");
     }
@@ -557,6 +593,7 @@ char * ProcessAlphas (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  
         table->n_tokens--;
 
         text = ProcessInitIdent (table, ident_table, text, ip, DOUBLE, sizeof ("double"));
+        COLOR_PRINT (YELLOW, "ident type = %d\n", table->tokens_array[*ip].token.ident.ident_data_type);
 
         ADD_ID_INTO_TABLE ();
     }
@@ -565,6 +602,7 @@ char * ProcessAlphas (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  
         table->n_tokens -= 2;
 
         text = ProcessInitIdent (table, ident_table, text, ip, CHAR, sizeof ("char *"));
+        COLOR_PRINT (YELLOW, "ident type = %d\n", table->tokens_array[*ip].token.ident.ident_data_type);
 
         ADD_ID_INTO_TABLE ();
     }
@@ -578,7 +616,6 @@ char * ProcessAlphas (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  
     CHECK_IF_OP (end_op)
     CHECK_IF_OP (ret)
     CHECK_IF_OP (inp)
-    CHECK_IF_OP (print)
 
 // ============================================= END =============================================
     else if (! strncmp (text, table->ops_data.if_.name, table->ops_data.if_.length))
@@ -608,10 +645,21 @@ char * ProcessAlphas (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  
             printf ("start process func call ---> [");
 
             table->tokens_array[*ip].token_type = FUNC_CALL;
+
+/* This strncmp is not necessary. I just want to save origin func name for func, which I did in my other projects */
+            if (! strncmp (pointer_to_ident_start, table->ops_data.print.name, table->ops_data.print.length))
+            {
+                len_counter = sizeof ("MyPrintf");
+
+                memcpy (table->tokens_array[*ip].token.ident.ident_name, "MyPrintf", len_counter);
+            }
+            else
+            {
+                memcpy (table->tokens_array[*ip].token.ident.ident_name, pointer_to_ident_start, len_counter);
+                table->tokens_array[*ip].token.ident.ident_name[len_counter + 1] = '\0';
+            }
+
             table->tokens_array[*ip].token_size = len_counter;
-            
-            memcpy (table->tokens_array[*ip].token.ident.ident_name, pointer_to_ident_start, len_counter);
-            table->tokens_array[*ip].token.ident.ident_name[len_counter + 1] = '\0';
 
             *ip += 1;
 
@@ -621,7 +669,7 @@ char * ProcessAlphas (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  
             text++;
 
             *ip += 1;
-
+            
             text = ProcessGettingParameters (table, ident_table, text, ip);
 
             printf ("] end\n\n");
@@ -631,6 +679,7 @@ char * ProcessAlphas (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  
             printf ("start process read ident ---> ");
 
             table->tokens_array[*ip] = table->tokens_array[FindRepitedIds (table, ident_table, pointer_to_ident_start)];
+            COLOR_PRINT (MANGETA, "ident type = %d\n", table->tokens_array[*ip].token.ident.ident_data_type);
 
             printf ("%s ---> end\n\n", table->tokens_array[*ip].token.ident.ident_name);
         }
@@ -650,6 +699,7 @@ char * ProcessGettingParameters (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ide
         if (isalpha (*text) || *text == '_')
         {
             table->tokens_array[*ip] = table->tokens_array[FindRepitedIds (table, ident_table, text)];
+            COLOR_PRINT (MANGETA, "ident type = %d\n", table->tokens_array[*ip].token.ident.ident_data_type);
             
             SKIP_IDENT ();
         }
@@ -679,9 +729,19 @@ char * ProcessGettingParameters (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ide
 
             return text;
         }
+        else if (*text == START_TEXT)
+        {
+            text++;
+            
+            text = ProcessCharIdent (table, ident_table, text, ip);
+
+            table->tokens_array[*ip].token.ident.ident_num = *ip;
+        }
         else
         {
             COLOR_PRINT (RED, "ERROR! There is something unknown in func parameters\n");
+
+            TableDtor (table);
 
             exit (1);
         }
@@ -695,9 +755,8 @@ char * ProcessInitIdent (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table
     printf ("start process init ident ---> ");
 
     table->tokens_array[*ip].token_type = IDENT;                                                  
-    table->tokens_array[*ip].token.ident.ident_data_type = id_type_enum;                          
-                                
-    text += offset;                                                              
+    table->tokens_array[*ip].token.ident.ident_data_type = id_type_enum;            
+    text += offset;
                                 
     SKIP_SPACES ();                                                                                
                                 
@@ -756,8 +815,6 @@ inline char * ProcessCycles (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_t
 
     printf ("%s\n", text);
 
-    COLOR_PRINT (YELLOW, "Jump into ReadBody...\n");
-
     return ReadBody (table, ident_table, text, ip);
 }
 
@@ -810,6 +867,7 @@ char * ProcessConditions (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_tabl
             printf ("start process alpha conditions ---> ");
 
             table->tokens_array[*ip] = table->tokens_array[FindRepitedIds (table, ident_table, text)];
+            COLOR_PRINT (MANGETA, "ident type = %d\n", table->tokens_array[*ip].token.ident.ident_data_type);
 
             SKIP_IDENT ();
                 
@@ -863,6 +921,8 @@ char * ProcessConditions (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_tabl
                 {
                     COLOR_PRINT (RED, "ERROR! There is unknown symbol in condition: <%s>\n", text - 1);
 
+                    TableDtor (table);
+
                     exit (1);
                 }
             }
@@ -880,8 +940,11 @@ size_t FindRepitedIds (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table, 
     {
         // TD Here maybe size without \0. So if idnt smthng like "strncmpCHORTBLYA" and we have got "strncmp" as ident, it will be the same for prog.
         if (! strncmp (text, table->tokens_array[ident_table->existing_ids[i]].token.ident.ident_name, table->tokens_array[ident_table->existing_ids[i]].token_size))
+        {
+            printf ("Free is: %d and it is: %d\n", ident_table->free_box, i);
+            
             return ident_table->existing_ids[i];
-        
+        }
     }
 
     char * bed_text = text;
@@ -892,15 +955,24 @@ size_t FindRepitedIds (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table, 
 
     COLOR_PRINT (RED, "ERROR! The variable <%s> was not declared in this scope\n", bed_text);
 
+    TableDtor (table);
+    
     exit (1);
 }
 
 inline char * ProcessNums (TOKEN_TABLE * table, char * text, size_t * ip)
 {
     printf ("In process num ---> ");
-    
+    if (*text == '-')
+    {
+        table->tokens_array[*ip].token.val  = -1;
+
+        text++;
+    }
+    else table->tokens_array[*ip].token.val =  1;
+
     table->tokens_array[*ip].token_type = NUM;
-    table->tokens_array[*ip].token.val  = strtol (text, &text, 10);
+    table->tokens_array[*ip].token.val  *= strtol (text, &text, 10);
 
     printf ("end\n");
 
@@ -940,7 +1012,7 @@ char * FillParameters (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table, 
         else if (! strncmp (text, "int ", sizeof ("int")))
         {
             table->n_tokens--;
-            
+            COLOR_PRINT (GREEN, "+1 id\n");
             table->tokens_array[*ip].token.ident.ident_data_type = SIGNED_INT;
 
             text += sizeof ("int");
@@ -964,6 +1036,8 @@ char * FillParameters (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table, 
         else
         {
             COLOR_PRINT (RED, "ERROR! Wrong param type\n");
+
+            TableDtor (table);
 
             exit (1);
         }
@@ -1129,6 +1203,8 @@ NODE * GetParam (TOKEN * token_table, size_t * ip, FUNC_TYPE type, size_t * n_pa
     }
     else if (IS_TYPE_ (NUM))
         param = NewNumNode (NUM, token_table[*ip].token.val, NULL, NULL);
+    else if (IS_TYPE_ (STRING))
+        param = NewStringNode (STRING, token_table[*ip].token.ident, NULL, NULL);
     else
         param = MAKE_PARAM_TYPE_ (IDENT)
 
@@ -1177,7 +1253,6 @@ NODE * GetAction (TOKEN * token_table, size_t * ip)
         case PARAM:
         case IDENT:
         {
-            COLOR_PRINT (YELLOW, "equals\n");
             node = GetEquals (token_table, ip);
 
             return node;
@@ -1460,8 +1535,6 @@ NODE * GetEquals (TOKEN * token_table, size_t * ip)
 
     *ip += 1;
 
-    printf ("%c\n", token_table[*ip].token.val + 61);
-
     if (IS_TYPE_ (OP) && OP_TYPE_ (EQUALS))
     {
         *ip += 1;
@@ -1470,7 +1543,9 @@ NODE * GetEquals (TOKEN * token_table, size_t * ip)
             equals_op_node->right = GetOp (token_table, ip);
         else if (IS_TYPE_ (STRING))
         {
-            equals_op_node->right = NewStringNode (token_table[*ip].token.ident.ident_name, NULL, NULL);
+            COLOR_PRINT (RED, "STIRIRIRIRIRN\n");
+
+            equals_op_node->right = NewStringNode (STRING, token_table[*ip].token.ident, NULL, NULL);
 
             *ip += 1;
         }
@@ -1671,8 +1746,11 @@ int SyntaxError (TOKEN * token_table, size_t * ip, const char * func_name)
     if (token_table[*ip].token_type == OP)
     {
         printf ("%c\n", token_table[*ip].token.op);
-        printf ("%s\n", func_name);
+        printf ("%c\n", token_table[*ip + 1].token.op);
     }
+    
+    free (token_table);
+
     exit (1);
 }
 
@@ -1687,12 +1765,12 @@ NODE * CallocNode (NODE * left_node, NODE * right_node)
     return node;
 }
 
-NODE * NewStringNode (char * elem, NODE * left_node, NODE * right_node)
+NODE * NewStringNode (NODE_TYPES type, IDENT_DATA ident, NODE * left_node, NODE * right_node)
 {
     NODE * node = CallocNode (left_node, right_node);
 
-    memcpy (node->data.ident.ident_name, elem, strlen (elem));
-    node->node_type = STRING;
+    node->data.ident  = ident;
+    node->node_type   = STRING;
 
     return node;
 }
@@ -1838,6 +1916,12 @@ int RecurcyDumpFill (FILE * file, NODE * node)
     {
         fprintf (file, "\tQ%p[style=filled, shape=record, fillcolor=\"%s\", width=3, label =\""
                 "{{PARAM | %s} | {{left | %p} | {right | %p}}}\" ]\n",
+                node, color, node->data.ident.ident_name, node->left, node->right);
+    }
+    else if (node->node_type == STRING)
+    {
+        fprintf (file, "\tQ%p[style=filled, shape=record, fillcolor=\"%s\", width=3, label =\""
+                "{{STRING | %s} | {{left | %p} | {right | %p}}}\" ]\n",
                 node, color, node->data.ident.ident_name, node->left, node->right);
     }
     else if (node->node_type == FUNC_CALL)

@@ -1,9 +1,12 @@
 #include "../../inc/Language.h"
+#include "../inc/AdditionalFuncs.hpp"
 
 static int IF_COUNTER    = 0;
 static int WHILE_COUNTER = 0;
 
 static size_t lable_counter    = 0;
+
+NODE_WITH_STR nodes_with_strings = {};
 
 void ReadTree (TOKEN_TABLE * token_table, const char * file_name)
 {
@@ -14,15 +17,20 @@ void ReadTree (TOKEN_TABLE * token_table, const char * file_name)
 
     NODE * root = token_table->tree;
 
+    nodes_with_strings.nodes_with_text = (NODE **) calloc (DELTA_NODE_WITH_STR, sizeof (NODE *));
+
 //====================================== START CODEGEN ======================================
 
-    fprintf (asm_file, "global main\n\n"                // Init asm prog
-                       "section .note.GNU-stack noexec\n"
-                       "section .text\n\n", root->left->data.ident.ident_name);
+    fprintf (asm_file, "section .note.GNU-stack noexec\n"
+                       "section .text\n\n"
+                       "global _start\n\n"                // Init asm prog
+                       "extern MyPrintf\n\n", root->left->data.ident.ident_name);
 
-    fprintf (asm_file, "main:\n"
-                       "\t\tcall .%s\n"                // Call entry func
-                       "\t\tjmp endprog\n", root->left->data.ident.ident_name);
+    fprintf (asm_file, "_start:\n"
+                       "\t\tcall .%s\n\n"                // Call entry func
+                       "\t\tmov rax, 60\n"
+                       "\t\tmov rdi, 0\n"
+                        "\t\tsyscall\n\n", root->left->data.ident.ident_name);
 
 
     while (root->data.op != END)                        // Start func generation
@@ -32,14 +40,25 @@ void ReadTree (TOKEN_TABLE * token_table, const char * file_name)
         root = root->right;
     }
 
-    fprintf (asm_file, "endprog:\n"
-                       "\t\tmov rax, 60\n"
-                       "\t\tmov rdi, 0\n"
-                        "\t\tsyscall\n\n"
-                       "section .data\n\n"              // Add section data with all vars
-                       "\tmem: \n\n \t\t times %d dq 0", (token_table->n_idents + 1) * 8);
+    FPRINTF_SQRT_BY_NEWTON (asm_file);
+    FPRINTF_INPUT_FUNC (asm_file);
+
+    fprintf (asm_file, "section .data\n\n"              // Add section data with all vars
+                       "\tmem: \n\n \t\t times %d dq 0\n"
+                       "\tINPUT_BUFFER: times %d dq 0\n", (token_table->n_idents + 1) * 8, SIZE_OF_INPUT_BUFFER);
     
+    size_t n_strings = nodes_with_strings.free_box;
+
+    for (size_t i = 0; n_strings > i; i++)
+    {
+        fprintf (asm_file, "\tSTRI_NUM_%d: db \'%s\', 0\n", nodes_with_strings.nodes_with_text[i]->data.ident.ident_num, 
+                                                     nodes_with_strings.nodes_with_text[i]->data.ident.ident_name);
+        COLOR_PRINT (RED, "string %d: \"%s\n\"\n", nodes_with_strings.nodes_with_text[i]->data.ident.ident_num, 
+                                             nodes_with_strings.nodes_with_text[i]->data.ident.ident_name);
+    }
     fclose (asm_file);
+
+    free (nodes_with_strings.nodes_with_text);
 
     return;
 }
@@ -89,6 +108,15 @@ NODE * InitAsmFunc (NODE * node, FILE * file)
     return node->right;
 }
 
+#define ADD_STRING_INTO_TABLE()     nodes_with_strings.nodes_with_text[nodes_with_strings.free_box++] = node;                                                       \
+                                                                                                                                                                    \
+                                    if (nodes_with_strings.free_box == nodes_with_strings.size)                                                                     \
+                                    {                                                                                                                               \
+                                        nodes_with_strings.size += DELTA_NODE_WITH_STR;                                                                             \
+                                                                                                                                                                    \
+                                        nodes_with_strings.nodes_with_text = (NODE **) realloc (nodes_with_strings.nodes_with_text, nodes_with_strings.size * 8);   \
+                                    }                                                                                                                               \
+
 NODE * RecursyTreeRead (NODE * node, FILE * file)
 {
     my_assert (node);
@@ -112,21 +140,55 @@ NODE * RecursyTreeRead (NODE * node, FILE * file)
         }
         case FUNC_CALL:
         {
+
             fprintf (file,  "\t\tpush r15\n"
                             "\t\tpush r14\n"
                             "\t\tpush rsp\n");
 
-            if (node->left) RecursyTreeRead (node->left, file);
 
-            fprintf (file, "\n\t\tcall .%s\n\n", node->data.ident.ident_name);
+            if (! strncmp (node->data.ident.ident_name, "MyPrintf", sizeof ("MyPrintf")))      
+            {
+                COLOR_PRINT (RED, "ITS MY PRINTF\n");
+                
+                size_t n_args = 0;
 
-            fprintf (file,  "\t\tpop rax\n"
-                            "\t\tpush qword [r15 + 8]\n"
-                            "\t\tpop rsp\n"
-                            "\t\tpop r14\n"
-                            "\t\tpop r15\n"
-                            "\t\tpush rax\n");
+                ReverseReadFuncArgs (node->left, file, &n_args);
+                fprintf (file, "\n\t\tcall MyPrintf\n\n");
+
+                fprintf (file,  "\t\tpop rax\n"
+                                "\t\tpush rsp\n"
+                                "\t\tpop rbx\n"
+                                "\t\tadd rbx, %d\n"
+                                "\t\tpush rbx\n"
+                                "\t\tpop rsp\n"
+                                "\t\tpop r14\n"
+                                "\t\tpop r15\n"
+                                "\t\tpush rax\n",(n_args + 1) * 8);
+            }
+            else
+            {
+                ReadFuncArgs (node->left, file);
+                fprintf (file, "\n\t\tcall .%s\n\n", node->data.ident.ident_name);
+
+                fprintf (file,  "\t\tpop rax\n"
+                                "\t\tpush qword [r15 + 8]\n"
+                                "\t\tpop rsp\n"
+                                "\t\tpop r14\n"
+                                "\t\tpop r15\n"
+                                "\t\tpush rax\n");
+            }
+
+            return NULL;
+        }
+        case STRING:
+        {
+            COLOR_PRINT (GREEN, "STRINNNNNNNNNNNNNNG\n");
     
+            ADD_STRING_INTO_TABLE ();
+
+            fprintf (file,  "\t\tlea rsi, STRI_NUM_%d\n"
+                            "\t\tpush rsi\n", node->data.ident.ident_num);
+
             return NULL;
         }
         case PARAM:
@@ -153,6 +215,32 @@ NODE * RecursyTreeRead (NODE * node, FILE * file)
             exit (-1);
         }
     }
+}
+
+void ReadFuncArgs (NODE * node, FILE * file)
+{
+    my_assert (node);
+    my_assert (file);
+
+    RecursyTreeRead (node, file);
+
+    if (node->left) ReadFuncArgs (node->left, file);
+
+    return;
+}
+
+void ReverseReadFuncArgs (NODE * node, FILE * file, size_t * n_args)
+{
+    my_assert (node);
+    my_assert (file);
+
+    *n_args += 1;
+
+    if (node->left) ReverseReadFuncArgs (node->left, file, n_args);
+
+    RecursyTreeRead (node, file);
+
+    return;
 }
 
 #define EXPR_ASM(str)                                      \
@@ -209,11 +297,15 @@ void GenOpCode (NODE * node, FILE * file)
 
             fprintf (file,  "; exponentiation\n\n"
                             "\t\tpop rcx\n"
-                            "\t\tpop rax\n"
+                            "\t\tpop rdx\n"
+                            "\t\tmov rax, 1\n"
                             "\t.loop_%d:\n"
-                            "\t\tmul rax\n"
-                            "\t\tloop\n"
-                            "\t\t", lable_counter++);
+                            "\t\timul rax, rdx\n"
+                            "\t\tloop .loop_%d\n"
+                            "\t\tpush rax\n"
+                            "\t\t", lable_counter, lable_counter);
+            
+            lable_counter++;
 
             fprintf (file, "; end POW\n\n");
             
@@ -225,7 +317,7 @@ void GenOpCode (NODE * node, FILE * file)
 
             RecursyTreeRead (node->left, file);
 
-            fprintf (file, "sqrt\n\n");
+            fprintf (file, "\t\tcall sqrt_by_Newton\n");
 
             fprintf (file, "; end SQRT\n\n");
 
@@ -273,7 +365,7 @@ void GenOpCode (NODE * node, FILE * file)
 
             fprintf (file,  "\t\tpop r11\n"
                             "\t\tpop rax\n"
-                            "\t\tmul r11\n"
+                            "\t\timul rax, r11\n"
                             "\t\tpush rax\n\n");
 
             fprintf (file, "; end MUL\n\n");
@@ -290,6 +382,7 @@ void GenOpCode (NODE * node, FILE * file)
 
             fprintf (file,  "\t\tpop r11\n"
                             "\t\tpop rax\n"
+                            "\t\tcqo\n"
                             "\t\tidiv r11\n"
                             "\t\tpush rax\n\n");
 
@@ -331,16 +424,6 @@ void GenOpCode (NODE * node, FILE * file)
 
             break;
         }
-        case PRINT:
-        {
-            fprintf (file, "; Start PRINTF\n\n");
-
-            fprintf (file, "outp\n");
-
-            fprintf (file, "; end OUTP\n\n");
-            
-            break;
-        }
         case END:
         {
             fprintf (file, "\n");
@@ -349,11 +432,25 @@ void GenOpCode (NODE * node, FILE * file)
         }
         case INPUT:
         {
-            fprintf (file, "; Start INPUT\n\n");
+            fprintf (file,  "; Start INPUT\n\n");
 
-            fprintf (file, "inp\n");
+            fprintf (file,  "\t\tpush rbx\n"
+                            "\t\tpush r14\n"
+                            "\t\tpush rsi\n"
+                            "\t\tpush rdi\n"
+                            "\t\tpush rdx\n");
 
-            fprintf (file, "; end\n\n");
+            fprintf (file,  "\t\tcall input_func\n");
+
+            fprintf (file,  "\t\tpop rax\n"
+                            "\t\tpop rdx\n"
+                            "\t\tpop rdi\n"
+                            "\t\tpop rsi\n"
+                            "\t\tpop r14\n"
+                            "\t\tpop rbx\n"
+                            "\t\tpush rax\n");
+            
+            fprintf (file,  "; end\n\n");
 
             break;
         }
@@ -419,17 +516,7 @@ void AsmConditional (NODE * node, FILE * file, OPERATORS mode, int label)
     {
         if (node->left) AsmConditional (node->left, file, mode, label);
 
-        if      (node->data.op == AND)   AsmOpsCompare (node->left, file, mode, label);
-        else if (node->data.op == OR)    
-        {
-            AsmOpsCompare (node->left, file, mode, IF_COUNTER);
-
-            num_of_label = IF_COUNTER++;
-        }
-
         if (node->right) AsmConditional (node->right, file, mode, label);
-
-        if (node->right) AsmOpsCompare (node->right, file, mode, label);
 
         if (node->data.op == OR)
         {
@@ -438,15 +525,25 @@ void AsmConditional (NODE * node, FILE * file, OPERATORS mode, int label)
     }
     else
     {
+        ENUM_IDENT_DATA_TYPE ident_tp = SIGNED_INT;
+
+        if (node->left->node_type == IDENT) ident_tp = node->left->data.ident.ident_data_type;
+
         RecursyTreeRead (node->left, file);
         COLOR_PRINT (CYAN, "/(. Y .)\\\n");
 
-        if (node->right) RecursyTreeRead (node->right, file);
+        if (node->right)
+        {
+            if (ident_tp == SIGNED_INT) ;
+            else if (node->right->node_type == IDENT) ident_tp = node->left->data.ident.ident_data_type;
+
+            RecursyTreeRead (node->right, file);
+        }
         else fprintf (file, "\t\tpush 0\n");
         
         COLOR_PRINT (GREEN, "/(. Y .)\\\n");
 
-        AsmOpsCompare (node, file, mode, label);
+        AsmOpsCompare (node, file, mode, label, ident_tp);
         COLOR_PRINT (RED, "/(. Y .)\\\n");
     }
 
@@ -463,7 +560,7 @@ void AsmConditional (NODE * node, FILE * file, OPERATORS mode, int label)
     else                                                      \
         fprintf (file, "\t\t" jmp " .if_%d\n\n", label);      \
 
-void AsmOpsCompare (NODE * node, FILE * file, OPERATORS mode, int label)
+void AsmOpsCompare (NODE * node, FILE * file, OPERATORS mode, int label, ENUM_IDENT_DATA_TYPE data_type)
 {
     my_assert (file && node);
     COLOR_PRINT (RED, "/(. Y .)\\\n");
@@ -472,25 +569,66 @@ void AsmOpsCompare (NODE * node, FILE * file, OPERATORS mode, int label)
     {
         case MORE:
         {
-            PRINT_LABEL ("jbe")
+            if (data_type == SIGNED_INT ||
+                data_type == DOUBLE)
+            {
+                COLOR_PRINT (RED, "SIGNED!!!\n");
+                PRINT_LABEL ("jle")
+            }
+            else
+            {
+                COLOR_PRINT (GREEN, "UNSIGNED 910910 %d\n", node->data.ident.ident_data_type);
+
+                PRINT_LABEL ("jbe")
+            }
 
             break;
         }
         case LESS:
         {
-            PRINT_LABEL ("jae");
+            if (data_type == SIGNED_INT ||
+                data_type == DOUBLE)
+            {
+                COLOR_PRINT (RED, "SIGNED!!!\n");
+                PRINT_LABEL ("jge")
+            }
+            else
+            {
+                
+                COLOR_PRINT (GREEN, "SIGNED!!! 910910%s\n", node->data.ident.ident_name);
+
+                PRINT_LABEL ("jae")
+            }
 
             break;
         }
         case GREATER_OR_EQ:
         {
-            PRINT_LABEL ("jb")
+            if (data_type == SIGNED_INT ||
+                data_type == DOUBLE)
+            {
+                COLOR_PRINT (RED, "SIGNED!!!\n");
+                PRINT_LABEL ("jl")
+            }
+            else
+            {
+                PRINT_LABEL ("jb")
+            }
 
             break;
         }
         case LESS_OR_EQ:
         {
-            PRINT_LABEL ("ja");
+            if (data_type == SIGNED_INT ||
+                data_type == DOUBLE)
+            {
+                COLOR_PRINT (RED, "SIGNED!!!\n");
+                PRINT_LABEL ("jg")
+            }
+            else
+            {
+                PRINT_LABEL ("ja")
+            }
 
             break;
         }

@@ -11,6 +11,8 @@
 
 typedef int nodeElem;
 
+const size_t DELTA_NODE_WITH_STR = 5;
+
 const int NOT_REPITED = -1;             // TD переделать нахуй
 
 // ======================================= FOR TREE CREATE =======================================
@@ -37,10 +39,10 @@ enum ENUM_IDENT_DATA_TYPE
 const size_t MAX_STRING_LENGHT = 32;
 typedef union ID_VAL_TYPE
 {
-    size_t unsigned_type;
+    size_t unsigned_type = NULL_TYPE;
     int    signed_type;
     double double_type;
-    char   string_type[MAX_STRING_LENGHT + 1];
+    size_t string_type;
 };
 
 typedef struct
@@ -66,8 +68,9 @@ typedef struct
     size_t   free_box     = 0;
 
     size_t * existing_ids = NULL;
-
     size_t   func_ip      = 0;
+
+
 } IDENTIFICATORS_TABLE;
 
 // ==================================== OPERATORS DATA STRUCTS ===================================
@@ -139,10 +142,10 @@ enum NODE_TYPES
 
 typedef struct NODE
 {
-    struct NODE * left;
-    struct NODE * right;
+    struct NODE * left  = NULL;
+    struct NODE * right = NULL;
 
-    struct NODE * parent;
+    struct NODE * parent = NULL;
 
     NODE_TYPES node_type = NOT_INITED;
     DATA data  = {};
@@ -218,6 +221,13 @@ typedef struct
     bool   status = 0;
 } TOKEN_TABLE;
 
+typedef struct
+{
+    NODE ** nodes_with_text = NULL;
+    size_t free_box        = 0;
+    size_t size            = DELTA_NODE_WITH_STR;
+} NODE_WITH_STR;
+
 // ============================================= END =============================================
 
 char *        DefFunc                   (TOKEN_TABLE * table, char * text, size_t * ip);
@@ -266,7 +276,7 @@ NODE *        GetTerm                   (TOKEN * token_table, size_t * ip);
 int           SyntaxError               (TOKEN * token_table, size_t * ip, const char * func_name);
 
 NODE *        CallocNode                (NODE * left_node, NODE * right_node);
-NODE *        NewStringNode             (char * elem, NODE * left_node, NODE * right_node);
+NODE *        NewStringNode             (NODE_TYPES type, IDENT_DATA ident, NODE * left_node, NODE * right_node);
 NODE *        NewNumNode                (NODE_TYPES type, int elem, NODE * left_node, NODE * right_node);
 NODE *        NewIdentNode              (NODE_TYPES type, IDENT_DATA ident, NODE * left_node, NODE * right_node);
 NODE *        NewOpNode                 (NODE_TYPES type, OPERATORS op, NODE * left_node, NODE * right_node);

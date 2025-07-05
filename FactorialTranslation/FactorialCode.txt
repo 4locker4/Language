@@ -1,7 +1,10 @@
 shema_buhicha entry ()
 {
-    size_t mama piva_z factorial (4) vodka
+    int fact_num piva_z cha_cha_skaju vodka
+    size_t mama piva_z factorial (fact_num) vodka
 
+    na_utro_posle_NK ("factorial %d = %d ", fact_num, mama) vodka
+    
     rvota mama vodka
 }
 

@@ -1,11 +1,17 @@
-global main
-
 section .note.GNU-stack noexec
 section .text
 
-main:
+global _start
+
+extern MyPrintf
+
+_start:
 		call .entry
-		jmp endprog
+
+		mov rax, 60
+		mov rdi, 0
+		syscall
+
 .entry:
 
 		pop  r14               ; r14 - сохраняем адрес возврата
@@ -13,7 +19,7 @@ main:
 		pop  r15               ;    |--> создаем сегмент переменных
 		add  r15, -8            ;----
 		mov r13, r15           ;------
-		sub  r13, 8           ;      |--> новый адрес стека
+		sub  r13, 16           ;      |--> новый адрес стека
 		push r13               ;      |
 		pop  rsp               ;------
 
@@ -22,10 +28,32 @@ main:
 
 ; EQUALSE
 
+; Start INPUT
+
+		push rbx
+		push r14
+		push rsi
+		push rdi
+		push rdx
+		call input_func
+		pop rax
+		pop rdx
+		pop rdi
+		pop rsi
+		pop r14
+		pop rbx
+		push rax
+; end
+
+		pop qword [r15 - 0]
+; end EQUALS
+
+; EQUALSE
+
 		push r15
 		push r14
 		push rsp
-		push 4
+		push qword [r15 - 0]           ; переменная: fact_num
 
 		call .factorial
 
@@ -35,12 +63,31 @@ main:
 		pop r14
 		pop r15
 		push rax
-		pop qword [r15 - 0]
+		pop qword [r15 - 8]
 ; end EQUALS
+		push r15
+		push r14
+		push rsp
+		push qword [r15 - 8]           ; переменная: mama
+		push qword [r15 - 0]           ; переменная: fact_num
+		lea rsi, STRI_NUM_18
+		push rsi
+
+		call MyPrintf
+
+		pop rax
+		push rsp
+		pop rbx
+		add rbx, 32
+		push rbx
+		pop rsp
+		pop r14
+		pop r15
+		push rax
 
 ; RETURN
 
-		push qword [r15 - 0]
+		push qword [r15 - 8]
 		push r14
 		ret
 ; end RETURN
@@ -74,7 +121,7 @@ main:
 		pop r11
 		pop r12
 		cmp r12, r11
-		jbe .if_1
+		jle .if_1
 
 ; ========================= END IF CONDITIONAL =========================
 
@@ -123,7 +170,7 @@ main:
 		push qword [r15 - 16]           ; переменная: mnojit
 		pop r11
 		pop rax
-		mul r11
+		imul rax, r11
 		push rax
 
 ; end MUL
@@ -144,13 +191,83 @@ main:
 ; end RETURN
 
 
-endprog:
-		mov rax, 60
+sqrt_by_Newton:
+		pop r9
+		pop rax
+		mov r8, rax
+		mov rcx, rax
+		.newton_loop:
+		mov rax, r8
+		xor rdx, rdx
+		div rcx
+		add rax, rcx
+		shr rax, 1
+		cmp rax, rcx
+		jae .done
+		mov rcx, rax
+		jmp .newton_loop
+		.done:
+		push rcx
+		push r9
+		ret
+input_func:
+		mov rax, 0
 		mov rdi, 0
+		lea rsi, INPUT_BUFFER  ; buffer to store input
+		mov rdx, 32            ; num bytes to read
 		syscall
 
+; +==============================================================+
+; | RAX <-> stores result                                        |
+; +--------------------------------------------------------------+
+; | RBX <-> stores temp storage                                  |
+; +--------------------------------------------------------------+
+; | RSI <-> stores BUFFER address                                |
+; +==============================================================+
+
+		xor rax, rax
+		xor rbx, rbx
+		xor r8, r8
+		lea rsi, INPUT_BUFFER
+
+		mov bl, [rsi]
+		cmp bl, '-'
+		jne .loop
+		mov r8, 1
+		inc rsi
+
+.loop:                     ; convert ASCII digits to number
+		mov bl, [rsi]
+		cmp bl, 0
+		je .success
+		cmp bl, 10             ; check for newline
+		je .success
+		sub bl, '0'
+		cmp bl, 9
+		ja .error
+		imul rax, 10
+		add rax, rbx
+		inc rsi
+		jmp .loop
+
+.success:
+		cmp r8, 1
+		jne .posit
+		neg rax
+.posit
+		pop rbx
+              ; save ret address
+		push rax
+		push rbx
+		ret
+
+.error:
+		mov rax, -1
+		ret
 section .data
 
 	mem: 
 
  		 times 8 dq 0
+	INPUT_BUFFER: times 32 dq 0
+	STRI_NUM_18: db 'factorial %d = %d ', 0

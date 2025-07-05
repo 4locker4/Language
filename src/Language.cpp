@@ -4,29 +4,54 @@ const char * FACTORIAL_CODE  = "./FactorialTranslation/FactorialCode.txt";
 const char * FACTORIAL_NASM  = "./FactorialTranslation/FactorialNasm.txt";
 const char * FACTORIAL_DUMP  = "./FactorialTranslation/FactorialDump.dot";
 
-const char * SQ_SOLVER       = "TestCode/SquareSolver.txt";
+const char * SQ_SOLVER_CODE  = "SquareSolverTranslation/SquareSolverCode.txt";
+const char * SQ_SOLVER_NASM  = "SquareSolverTranslation/SquareSolverNasm.txt";
+const char * SQ_SOLVER_DUMP  = "SquareSolverTranslation/SquareSolverDump.dot";
 
-int main ()
+int main (size_t argc, char * argv[])
 {
-    printf ("Start\n");
-    TOKEN_TABLE * table = TableCtor (FACTORIAL_CODE);
+    if (argc)
+    {
+        TOKEN_TABLE * table = NULL;
 
-    printf ("%p - after ctor\n", table->tokens_array);
+        if (! strcasecmp (argv[1], "Factorial"))
+        {
+            table = TableCtor (FACTORIAL_CODE);
 
-    FillTokenTypes (table);
+            FillTokenTypes (table);
+        
+            size_t ip = 0;
+        
+            table->tree = GetFunctions (table->tokens_array, &ip);
+        
+            GraphDump (table->tree, FACTORIAL_DUMP);
+        
+            ReadTree (table, FACTORIAL_NASM);
+        }
+        else if (! strcasecmp (argv[1], "SquareSolver"))
+        {
+            table = TableCtor (SQ_SOLVER_CODE);
 
-    printf ("%p - after fill\n", table->tokens_array);
+            FillTokenTypes (table);
+        
+            size_t ip = 0;
+        
+            table->tree = GetFunctions (table->tokens_array, &ip);
+        
+            GraphDump (table->tree, SQ_SOLVER_DUMP);
+        
+            ReadTree (table, SQ_SOLVER_NASM);
+        }
+        else
+        {
+            COLOR_PRINT (RED, "Tell me, what programm we compile. I can`t do %s\n", argv[1]);
 
-    size_t ip = 0;
+            return 1;
+        }
 
-    printf ("end of token filling\n");
+        TableDtor (table);
 
-    table->tree = GetFunctions (table->tokens_array, &ip);
-    COLOR_PRINT (GREEN, "Complite\n");
-
-    GraphDump (table->tree, FACTORIAL_DUMP);
-
-    ReadTree (table, FACTORIAL_NASM);
-
+        return 0;
+    }
 }
 

@@ -1,0 +1,100 @@
+shema_buhicha main ()
+{
+    na_utro_posle_NK ("Enter coefficients ") vodka
+    na_utro_posle_NK ("of the equation (a * x") vodka
+    na_utro_posle_NK (" ^ 2 + b * x + c): ") vodka
+
+    int first_alko piva_z cha_cha_skaju vodka
+    int second_alko piva_z cha_cha_skaju vodka
+    int third_alko piva_z cha_cha_skaju vodka
+
+    na_utro_posle_NK ("Your equation was:") vodka
+    na_utro_posle_NK (" %d*x^2 + %d*x + %d; ", first_alko, second_alko, third_alko) vodka
+    na_utro_posle_NK ("and the answer is ") vodka
+
+    esli_krepkost_alko (first_alko == 0 cyka_i_eche second_alko == 0 cyka_i_eche third_alko == 0)
+    {
+        na_utro_posle_NK ("Infitity roots ") vodka
+
+        rvota 0 vodka
+    }
+
+    esli_krepkost_alko (first_alko == 0)
+    {
+        without_krepkoe (second_alko, third_alko) vodka
+
+        rvota 0 vodka
+    }
+
+    esli_krepkost_alko (third_alko == 0)
+    {
+        without_krepkoe (first_alko, second_alko) vodka
+
+        na_utro_posle_NK (", %d ", 0) vodka
+
+        rvota 0 vodka
+    }
+
+    esli_krepkost_alko (second_alko == 0)
+    {
+        esli_krepkost_alko (third_alko > 0)
+        {
+            na_utro_posle_NK ("no roots ") vodka
+
+            rvota 0 vodka
+        }
+
+        int resultat piva_z sake ((-1) * third_alko / first_alko) vodka 
+
+        na_utro_posle_NK ("%d and -%d ", resultat, resultat) vodka
+
+        rvota 0 vodka        
+    }
+
+    discriminator (first_alko, second_alko, third_alko) vodka
+
+    rvota 0 vodka
+}
+
+shema_buhicha without_krepkoe (int second_alko, int third_alko)
+{
+    int resultat piva_z third_alko / second_alko * (-1) vodka
+
+    na_utro_posle_NK ("%d ", resultat) vodka
+
+    rvota 0 vodka
+}
+
+shema_buhicha discriminator (int first_alko, int second_alko, int third_alko)
+{
+    int itogo piva_z second_alko ^ 2 - 4 * first_alko * third_alko vodka
+
+    na_utro_posle_NK ("< %d - discriminant > ", itogo) vodka
+
+    int firt_res piva_z 0 vodka
+    int secs_res piva_z 0 vodka
+
+    esli_krepkost_alko (itogo > 0)
+    {
+        firt_res piva_z ((-1) * second_alko + sake (itogo)) / (2 * first_alko) vodka
+
+        secs_res piva_z ((-1) * second_alko - sake (itogo)) / (2 * first_alko) vodka
+
+        na_utro_posle_NK ("%d and %d ", firt_res, secs_res) vodka    
+
+        rvota 0 vodka
+    }
+
+    esli_krepkost_alko (itogo == 0)
+    {
+        firt_res piva_z ((-1) * second_alko) / (2 * first_alko) vodka
+
+        na_utro_posle_NK ("%d and %d ", firt_res, firt_res) vodka    
+
+        rvota 0 vodka
+    }
+
+    na_utro_posle_NK ("no roots ") vodka
+
+    rvota 0 vodka
+}

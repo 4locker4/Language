@@ -67,10 +67,12 @@ void emit_call_func (CodeBuffer_t * cb, const char * target)
 {
     uint8_t opcode = 0xE8;
 
-    uint8_t bytes[] = { opcode, 0, 0, 0, 0 };
-    code_buffer_write (cb, bytes, 5);
+    code_buffer_write (cb, &opcode, 1);
 
     AddRelocation (&cb->relc_tab, target, cb->offset);
+
+    uint8_t bytes[] = { 0, 0, 0, 0 };
+    code_buffer_write (cb, bytes, 4);
 }
 
 //========================= Emitter for ja =========================//

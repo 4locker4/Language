@@ -38,8 +38,8 @@ factorial:
 	mv ./FactorialTranslation/FactorialNasm.txt ./FactorialTranslation/FactorialNasm.asm
 	nasm -f elf64 ./BackEnd/src/Printf.asm -o ./BackEnd/src/Printf.o
 	nasm -f elf64 ./FactorialTranslation/FactorialNasm.asm -o ./FactorialTranslation/FactorialNasm.o
-	ld -o ./FactorialTranslation/FactorialProg.out ./FactorialTranslation/FactorialNasm.o ./BackEnd/src/Printf.o
-	chmod +x ./FactorialTranslation/FactorialBin.txt
+	ld -o ./FactorialTranslation/FactorialProg.out ./FactorialTranslation/FactorialBin.txt ./BackEnd/src/Printf.o
+#chmod +x ./FactorialTranslation/FactorialBin.txt
 
 square:
 	./Language.out SquareSolver

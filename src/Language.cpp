@@ -31,7 +31,7 @@ int main (size_t argc, char * argv[])
         
             ReadTree (table, FACTORIAL_NASM);
 
-            ReadTreeBin (table, FACTORIAL_BIN);
+            CreateElf64File (table, FACTORIAL_BIN);
         }
         else if (! strcasecmp (argv[1], "SquareSolver"))
         {
@@ -47,7 +47,7 @@ int main (size_t argc, char * argv[])
         
             ReadTree (table, SQ_SOLVER_NASM);
 
-            ReadTreeBin (table, SQ_SOLVER_BIN);
+            CreateElf64File (table, SQ_SOLVER_BIN);
         }
         else
         {

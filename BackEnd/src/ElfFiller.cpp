@@ -11,24 +11,32 @@ static size_t lable_counter = 0;
 static NODE_WITH_STR nodes_with_strings = {};
 static char STRINGS_NAME[32] = {0};
 
-static const char * shstrtab_data = "\0.text\0.data\0.shstrtab\0.rela.text\0.strtab\0.symtab";
+static const char * shstrtab_data = "\0.text\0.data\0.shstrtab\0.symtab\0.strtab\0.rela.text";
 
+// Сюда с легкостью можно добавить разные виды relocation`ов. Только ввести их и делать | в if
 
-void ApplyRelocations (CodeBuffer_t * cb) 
+void ApplyRelocations (CodeBuffer_t * cb, Elf64_Rela * rela_table) 
 {
     size_t max_relc = cb->relc_tab.free_box;
     size_t max_symb = cb->symb_tab.free_box;
 
+    RELOCATION * reloc = NULL;
+        
+    SYMBOL * target = NULL;
+
     for (int i = 0; max_relc > i; i++) 
     {
-        RELOCATION * reloc = &cb->relc_tab.relocation[i];
-        
-        SYMBOL * target = NULL;
+        reloc = &cb->relc_tab.relocation[i];
+        target = NULL;
+
+        rela_table[i].r_offset = reloc->patch_offset;
 
         for (int j = 0; max_symb > j; j++) {
             if (! strcmp(cb->symb_tab.labels[j].label_name, reloc->target)) 
             {
                 target = &cb->symb_tab.labels[j];
+                rela_table[i].r_info = (j >> 32) | R_X86_64_PC32;
+
                 break;
             }
         }
@@ -38,12 +46,8 @@ void ApplyRelocations (CodeBuffer_t * cb)
             printf ("Error: undefined symbol '%s'\n", reloc->target);
             exit(1);
         }
-        
-        int32_t offset = target->address - (reloc->patch_offset);
-        
-        memcpy(cb->buffer + reloc->patch_offset - 4, &offset, sizeof (offset));
 
-        COLOR_PRINT (YELLOW, "%d - для i = %u\n", offset, i);
+        rela_table[i].r_addend = target->address - (reloc->patch_offset);
     }
 }
 
@@ -58,6 +62,7 @@ void AddLabel (SYMBOL_TABLE  * symbol_tab, const char * label_name, int64_t addr
     symbol_tab->labels_len += strlen (label_name) + 1;
 
     symbol_tab->labels[symbol_tab->free_box].label_name = strdup (label_name);
+    COLOR_PRINT (MANGETA, "%s - label\n", symbol_tab->labels[symbol_tab->free_box].label_name);
     symbol_tab->labels[symbol_tab->free_box++].address  = address;
 }
 
@@ -73,8 +78,32 @@ void AddRelocation (RELOC_TABLE * reloc_table, const char * target, int64_t patc
     reloc_table->relocation[reloc_table->free_box++].target = strdup (target);
 }
 
-void CreateElf64File (CodeBuffer_t * cb, CodeBuffer_t * cb_data, FILE * file)
+// TD Важно! Проверить еще раз, что lenght достаточно для копирования всех меток.
+char * MakeAllLabelsString (SYMBOL_TABLE * symtab, size_t lenght)
 {
+    char * all_labels_string = (char *) calloc (sizeof (char), lenght);
+    char * pointer = all_labels_string;
+
+    for (size_t i = 0; symtab->free_box > i; i++)
+    {
+        strcpy (pointer, symtab->labels[i].label_name);
+
+        pointer += strlen (symtab->labels[i].label_name) + 1;
+    }
+    
+    return all_labels_string;
+}
+
+void CreateElf64File (TOKEN_TABLE * token_table, const char * file_name)
+{
+    CodeBuffer_t cb = {};
+    CodeBuffer_t cb_data = {};
+
+    code_buffer_init (&cb);
+    code_buffer_init (&cb_data);
+
+    ReadTreeBin (token_table, &cb, &cb_data);
+
     Elf64_Ehdr ehdr = 
     {
         // e_ident (первые 16 байт)
@@ -96,12 +125,12 @@ void CreateElf64File (CodeBuffer_t * cb, CodeBuffer_t * cb_data, FILE * file)
         .e_phoff     = 0,                       // адрес phdr
         .e_shoff     = sizeof(Elf64_Shdr),      // таблица секций
         .e_flags     = 0,                       // не используется
-        .e_ehsize    = 0,                       // размер Elf64_Ehdr
+        .e_ehsize    = sizeof(Elf64_Shdr),      // размер Elf64_Ehdr
         .e_phentsize = 0,                       // размер Elf64_Phdr
         .e_phnum     = 0,                       // количество программных заголовков
         .e_shentsize = sizeof(Elf64_Shdr),      // размер Elf64_Shdr
         .e_shnum     = 6,                       // 6 секций
-        .e_shstrndx  = 3,                       // .shstrtab - нет
+        .e_shstrndx  = 2,                       // .shstrtab - нет
     };
 
     Elf64_Shdr text_shdr = 
@@ -110,9 +139,9 @@ void CreateElf64File (CodeBuffer_t * cb, CodeBuffer_t * cb_data, FILE * file)
         .sh_type = SHT_PROGBITS,
         .sh_flags = SHF_ALLOC | SHF_EXECINSTR,
         .sh_addr = ALIGN,
-        .sh_offset = sizeof (Elf64_Ehdr) + sizeof (Elf64_Shdr) * 4, // Потому что у нас ehdr, text_shdr, data_shdr
+        .sh_offset = sizeof (Elf64_Ehdr) + sizeof (Elf64_Shdr) * 6, // Потому что у нас ehdr, text_shdr, data_shdr
                                                                     // shstrtab_shdr, rela_text_shdr
-        .sh_size = cb->offset,
+        .sh_size = cb.offset,
         .sh_link = 0,
         .sh_info = 0,                           // Для rela не забыть поменять
         .sh_addralign = 16,
@@ -124,9 +153,9 @@ void CreateElf64File (CodeBuffer_t * cb, CodeBuffer_t * cb_data, FILE * file)
         .sh_name = 1 + sizeof (".text"),
         .sh_type = SHT_PROGBITS,
         .sh_flags = SHF_ALLOC | SHF_WRITE,
-        .sh_addr = ALIGN + ((cb->offset + ALIGN - 1) & ~(ALIGN - 1)), 
+        .sh_addr = ALIGN + ((cb.offset + ALIGN - 1) & ~(ALIGN - 1)), 
         .sh_offset = text_shdr.sh_offset + text_shdr.sh_size,
-        .sh_size = cb_data->offset,
+        .sh_size = cb_data.offset,
         .sh_link = 0,
         .sh_info = 0,                           // Для rela не забыть поменять
         .sh_addralign = 8,
@@ -140,126 +169,138 @@ void CreateElf64File (CodeBuffer_t * cb, CodeBuffer_t * cb_data, FILE * file)
         .sh_flags = 0,
         .sh_addr  = 0,
         .sh_offset = data_shdr.sh_offset + data_shdr.sh_size,
-        .sh_size = sizeof (shstrtab_data),
+        .sh_size = 1 + sizeof (".text")      + sizeof (".data")   + sizeof (".shstrtab") + 
+                       sizeof (".rela.text") + sizeof (".strtab") + sizeof (".symtab"),
         .sh_link = 0,
         .sh_info = 0,
         .sh_addralign = 1,
         .sh_entsize = 0                         
     };
-
-    Elf64_Shdr rela_text_shdr =
+        
+    Elf64_Shdr symtab_shdr =
     {
-        .sh_name = data_shdr.sh_name + sizeof (".shstrtab"),
-        .sh_type = SHT_RELA,
+        .sh_name = shstrtab_shdr.sh_name + sizeof (".shstrtab"),
+        .sh_type = SHT_SYMTAB,
         .sh_flags = 0,
         .sh_addr  = 0,
         .sh_offset = shstrtab_shdr.sh_offset + shstrtab_shdr.sh_size,
-        .sh_size = cb->relc_tab.free_box * sizeof (Elf64_Rela),
-        .sh_link = 6,                                                                   // Индекс секции symtab
-        .sh_info = 1,                                                                   // Индекс секции text
+        .sh_size = cb.symb_tab.free_box * sizeof (Elf64_Sym),
+        .sh_link = 4,                                                                   // Индекс секции symtab
+        .sh_info = 0,                                                                   // Индекс первого нелокального символа (не делал локальных меток), а под 0 будет 0
         .sh_addralign = 8,
-        .sh_entsize = sizeof (Elf64_Rela)                 
+        .sh_entsize = sizeof (Elf64_Sym) 
     };
 
     Elf64_Shdr strtab_shdr = 
     {
-        .sh_name = rela_text_shdr.sh_name + sizeof (".rela.text"),
+        .sh_name = symtab_shdr.sh_name + sizeof (".symtab"),
         .sh_type = SHT_STRTAB,
         .sh_flags = 0,
         .sh_addr  = 0,
-        .sh_offset = rela_text_shdr.sh_offset + rela_text_shdr.sh_size,
-        .sh_size = cb_data->symb_tab.labels_len,
+        .sh_offset = symtab_shdr.sh_offset + symtab_shdr.sh_size,
+        .sh_size = cb.symb_tab.labels_len,
         .sh_link = 0,
         .sh_info = 0,
         .sh_addralign = 1,
         .sh_entsize = 0
     };
-    
-    Elf64_Shdr symtab_shdr =
+
+    Elf64_Shdr rela_text_shdr =
     {
         .sh_name = strtab_shdr.sh_name + sizeof (".strtab"),
-        .sh_type = SHT_SYMTAB,
+        .sh_type = SHT_RELA,
         .sh_flags = 0,
         .sh_addr  = 0,
         .sh_offset = strtab_shdr.sh_offset + strtab_shdr.sh_size,
-        .sh_size = cb->symb_tab.free_box * sizeof (Elf64_Sym),
-        .sh_link = 5,                                                                   // Индекс секции symtab
-        .sh_info = 1,                                                                   // Индекс первого нелокального символа (не делал локальных меток), а под 0 будет 0
+        .sh_size = cb.relc_tab.free_box * sizeof (Elf64_Rela),
+        .sh_link = 3,                                                                   // Индекс секции symtab
+        .sh_info = 1,                                                                   // Индекс секции text
         .sh_addralign = 8,
-        .sh_entsize = sizeof (Elf64_Rela) 
+        .sh_entsize = sizeof (Elf64_Rela)                 
     };
 
 //====================================== WRITE INTO FILE ======================================
 
-    // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+
-    fwrite (&ehdr, sizeof (Elf64_Ehdr), 1, file);                       //
-    fwrite (&text_shdr, sizeof (Elf64_Shdr), 1, file);                  //
-    fwrite (&data_shdr, sizeof (Elf64_Shdr), 1, file);                  //
-    fwrite (&shstrtab_shdr, sizeof (Elf64_Ehdr), 1, file);              //      Put headers and segments
-    fwrite (&rela_text_shdr, sizeof (Elf64_Ehdr), 1, file);             //
-    fwrite (&strtab_shdr, sizeof (Elf64_Ehdr), 1, file);                //
-    fwrite (&symtab_shdr, sizeof (Elf64_Ehdr), 1, file);                //
-    // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+
+    FILE * file = fopen (file_name, "w+");
+
+    // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+=
+    fwrite (&ehdr,           sizeof (Elf64_Ehdr), 1, file);             //
+    fwrite (&text_shdr,      sizeof (Elf64_Shdr), 1, file);             //
+    fwrite (&data_shdr,      sizeof (Elf64_Shdr), 1, file);             //
+    fwrite (&shstrtab_shdr,  sizeof (Elf64_Shdr), 1, file);             //      Put headers and segments
+    fwrite (&symtab_shdr,    sizeof (Elf64_Shdr), 1, file);             //
+    fwrite (&strtab_shdr,    sizeof (Elf64_Shdr), 1, file);             //
+    fwrite (&rela_text_shdr, sizeof (Elf64_Shdr), 1, file);             //
+    // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+=
 
     fseek (file, text_shdr.sh_offset, SEEK_SET);      // Put .text
-    fwrite (cb->buffer, cb->offset, 1, file);
+    fwrite (cb.buffer, cb.offset, 1, file);
 
     fseek (file, data_shdr.sh_offset, SEEK_SET);      // Put .data
-    fwrite (cb_data->buffer, cb_data->offset, 1, file);
+    fwrite (cb_data.buffer, cb_data.offset, 1, file);
 
     fseek (file, shstrtab_shdr.sh_offset, SEEK_SET);
-    fwrite (shstrtab_data, sizeof (Elf64_Shdr), 1, file);
+    fwrite (shstrtab_data, shstrtab_shdr.sh_size, 1, file);
 
-    fseek (file, rela_text_shdr.sh_offset, SEEK_SET);
-    fwrite (&rela_text_shdr, sizeof (Elf64_Shdr), 1, file);
+    Elf64_Sym * sym_table = (Elf64_Sym *) calloc (cb.symb_tab.free_box, sizeof (Elf64_Sym));
+    
+    fseek (file, symtab_shdr.sh_offset, SEEK_SET);
+    fwrite (cb.symb_tab.labels, symtab_shdr.sh_size, 1, file);
+
+    // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+=
+    char * all_labels_string = MakeAllLabelsString (&cb.symb_tab, cb.symb_tab.labels_len);
 
     fseek (file, strtab_shdr.sh_offset, SEEK_SET);
-    fwrite (&strtab_shdr, sizeof (Elf64_Shdr), 1, file);
+    fwrite (all_labels_string, strtab_shdr.sh_size, 1, file);
 
-    fseek (file, symtab_shdr.sh_offset, SEEK_SET);
-    fwrite (&symtab_shdr, sizeof (Elf64_Shdr), 1, file);
+    free (all_labels_string);
+    // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+=
 
-    Link2Files (cb, "./BackEnd/src/Printf.o");
+    // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+=
+    Elf64_Rela * rela_table = (Elf64_Rela *) calloc (cb.relc_tab.free_box, sizeof (Elf64_Rela));
+    ApplyRelocations (&cb, rela_table);
+
+    fseek (file, rela_text_shdr.sh_offset, SEEK_SET);
+    fwrite (rela_table, rela_text_shdr.sh_size, 1, file);
+
+    free (rela_table);
+    // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+=
+
+    //Link2Files (&cb, "./BackEnd/src/Printf.o");
 
     return;
 }
-void ReadTreeBin (TOKEN_TABLE * token_table, const char * file_name)
+
+void ReadTreeBin (TOKEN_TABLE * token_table, CodeBuffer_t * cb, CodeBuffer_t * cb_data)
 {
-    my_assert (token_table);
-
-    FILE * bin_file = fopen (file_name, "w+");
-    my_assert (bin_file);
-
     NODE * root = token_table->tree;
 
     nodes_with_strings.nodes_with_text = (NODE **) calloc (DELTA_NODE_WITH_STR, sizeof (NODE *));
 
-    CodeBuffer_t cb = {};
-    code_buffer_init (&cb);
 //====================================== START CODEGEN ======================================
 
-    AddLabel (&cb.symb_tab, "_start", cb.offset);
+    AddLabel (&cb->symb_tab, "_start", cb->offset);
 
     // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+
-    emit_call_func (&cb, root->left->data.ident.ident_name);            //
-    emit_mov_reg_imm (&cb, RAX, 60);                                    // Call entry func and end prog.
-    emit_mov_reg_imm (&cb, RDI, 0);                                     //
-    emit_syscall (&cb);                                                 //
+    emit_call_func (cb, root->left->data.ident.ident_name);             //
+    emit_mov_reg_imm (cb, RAX, 60);                                     // Call entry func and end prog.
+    emit_mov_reg_imm (cb, RDI, 0);                                      //
+    emit_syscall (cb);                                                  //
     // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+
 
     while (root->data.op != END)                        // Start func generation
     {
-        InitAsmFuncBin (root->left, &cb);
+        InitAsmFuncBin (root->left, cb);
 
         root = root->right;
     }
 
     // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+
-    SqrtByNewton (&cb);     // Sqrt func                                // Additional funcs
-    InputFunc    (&cb);     // Input num func                           //
+    SqrtByNewton (cb);      // Sqrt func                                // Additional funcs
+    InputFunc    (cb);      // Input num func                           //
     // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+
 
-    size_t end_of_text_seg = cb.offset;
+    size_t end_of_text_seg = cb->offset;
 
 // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+= START SECTION .DATA =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+=
 
@@ -268,33 +309,24 @@ void ReadTreeBin (TOKEN_TABLE * token_table, const char * file_name)
 
 // =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+ END DEFINES +=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+=
 
-    CodeBuffer_t cb_data = {};
-    code_buffer_init (&cb_data);
-    
     size_t n_strings = nodes_with_strings.free_box;
     size_t lenght = 0;
     
     for (size_t i = 0; n_strings > i; i++)
     {
         MAKE_LABEL ("STRI_NUM_%d", nodes_with_strings.nodes_with_text[i]->data.ident.ident_num)
-        AddLabel (&cb.symb_tab, STRINGS_NAME, 0x2000 + cb_data.offset);
+        AddLabel (&cb->symb_tab, STRINGS_NAME, cb->offset + cb_data->offset);
 
         lenght = strlen (nodes_with_strings.nodes_with_text[i]->data.ident.ident_name) + 1;
 
-        code_buffer_write (&cb_data, (uint8_t *) nodes_with_strings.nodes_with_text[i]->data.ident.ident_name, lenght);
-        code_buffer_write (&cb_data, (uint8_t *) "\0", 1);
+        code_buffer_write (cb_data, (uint8_t *) nodes_with_strings.nodes_with_text[i]->data.ident.ident_name, lenght);
+        code_buffer_write (cb_data, (uint8_t *) "\0", 1);
     }
 
-    AddLabel (&cb.symb_tab, "INPUT_BUFFER", 0x2000 + cb_data.offset);           // For input func
+    AddLabel (&cb->symb_tab, "INPUT_BUFFER", cb->offset + cb_data->offset);           // For input func
 
     uint8_t bites[SIZE_OF_INPUT_BUFFER] = {0};
-    code_buffer_write (&cb_data, bites, SIZE_OF_INPUT_BUFFER);
-
-    ApplyRelocations (&cb);                                                     // Apply relocations
-
-    CreateElf64File (&cb, &cb_data, bin_file);
-    
-    fclose (bin_file);
+    code_buffer_write (cb_data, bites, SIZE_OF_INPUT_BUFFER);
 
     free (nodes_with_strings.nodes_with_text);
 
@@ -389,7 +421,6 @@ NODE * RecursyTreeReadBin (NODE * node, CodeBuffer_t * cb)
             ADD_STRING_INTO_TABLE ();
 
             MAKE_LABEL ("STRI_NUM_%d", node->data.ident.ident_num);
-            AddLabel (&cb->symb_tab, STRINGS_NAME, cb->offset);
 
             LEA_REG_LABEL (RSI, STRINGS_NAME)
             PUSH_REG (RSI)
@@ -651,7 +682,7 @@ void IfCodeGenBin (NODE * node, CodeBuffer_t * cb)
 
     RecursyTreeReadBin (node->right, cb);
 
-    MAKE_LABEL (".if_%d", end_if_label_body);
+    MAKE_LABEL ("if_%d", end_if_label_body);
     AddLabel (&cb->symb_tab, STRINGS_NAME, cb->offset);
 
     return;
@@ -672,7 +703,7 @@ void AsmConditionalBin (NODE * node, CodeBuffer_t * cb, OPERATORS mode, int labe
 
         if (node->data.op == OR)
         {
-            MAKE_LABEL (".if_%d", num_of_label)
+            MAKE_LABEL ("if_%d", num_of_label)
             AddLabel (&cb->symb_tab, STRINGS_NAME, cb->offset);
         }
     }
@@ -707,12 +738,12 @@ void AsmConditionalBin (NODE * node, CodeBuffer_t * cb, OPERATORS mode, int labe
                                                                 \
                             if (mode == WHILE)                  \
                             {                                   \
-                                MAKE_LABEL (".while_%d", label);\
+                                MAKE_LABEL ("while_%d", label);\
                                 jmp (STRINGS_NAME)              \
                             }                                   \
                             else                                \
                             {                                   \
-                                MAKE_LABEL (".if_%d", label);   \
+                                MAKE_LABEL ("if_%d", label);   \
                                 jmp (STRINGS_NAME)              \
                             }                                   \
                         }
@@ -788,10 +819,10 @@ void WhileCodeGenBin (NODE * node, CodeBuffer_t * cb)
 
     RecursyTreeReadBin (node->right, cb);
 
-    MAKE_LABEL (".while_%d", start_label_body);
+    MAKE_LABEL ("while_%d", start_label_body);
     JMP (STRINGS_NAME)
 
-    MAKE_LABEL (".while_%d", end_label_body);
+    MAKE_LABEL ("while_%d", end_label_body);
     AddLabel (&cb->symb_tab, STRINGS_NAME, cb->offset);
     return;
 }
@@ -813,44 +844,44 @@ void InputFunc (CodeBuffer_t * cb)
 
     MOV_R8_MEM (RBX, RSI, 0)
     CMP_R8_IMM8 (RBX, '-')
-    JNE (".loop_input")
+    JNE ("loop_input")
     MOV_REG_IMM (R8, 1)
     INC_REG (RSI)
 
-    AddLabel (&cb->symb_tab, ".loop_input", cb->offset);
+    AddLabel (&cb->symb_tab, "loop_input", cb->offset);
 
     MOV_R8_MEM (RBX, RSI, 0)
     CMP_R8_IMM8 (RBX, 0)
-    JE (".success")
+    JE ("success")
     
     CMP_R8_IMM8 (RBX, 10)
-    JE (".success")
+    JE ("success")
 
     SUB_R8_IMM8 (RBX, '0')
     CMP_R8_IMM8 (RBX, 9)
-    JA (".error")
+    JA ("error")
 
     IMUL_REG_NUM (RAX, 10)
     ADD_REG_REG (RAX, RBX)
     INC_REG (RSI)
 
-    JMP (".loop_input")
+    JMP ("loop_input")
 
-    AddLabel (&cb->symb_tab, ".success", cb->offset);
+    AddLabel (&cb->symb_tab, "success", cb->offset);
 
     CMP_REG_NUM (R8, 1)
-    JNE (".posit")
+    JNE ("posit")
 
     NEG_REG (RAX)
 
-    AddLabel (&cb->symb_tab, ".posit", cb->offset);
+    AddLabel (&cb->symb_tab, "posit", cb->offset);
 
     POP_REG (RBX)
     PUSH_REG (RAX)
     PUSH_REG (RBX)
     RET ()
 
-    AddLabel (&cb->symb_tab, ".error", cb->offset);
+    AddLabel (&cb->symb_tab, "error", cb->offset);
 
     MOV_REG_IMM (RAX, -1)
     RET ()
@@ -866,7 +897,7 @@ void SqrtByNewton (CodeBuffer_t * cb)
     MOV_REG_REG (R8, RAX)
     MOV_REG_REG (RCX, RAX)
 
-    AddLabel (&cb->symb_tab, ".newton_loop", cb->offset);
+    AddLabel (&cb->symb_tab, "newton_loop", cb->offset);
 
     MOV_REG_REG (RAX, R8)
     XOR_REG_REG (RDX, RDX)
@@ -874,12 +905,12 @@ void SqrtByNewton (CodeBuffer_t * cb)
     ADD_REG_REG (RAX, RCX)
     SHR_REG_IMM (RAX, 1)
     CMP_REG_REG (RAX, RCX)
-    JAE (".done")
+    JAE ("done")
 
     MOV_REG_REG (RCX, RAX)
-    JMP (".newton_loop")
+    JMP ("newton_loop")
 
-    AddLabel (&cb->symb_tab, ".done", cb->offset);
+    AddLabel (&cb->symb_tab, "done", cb->offset);
 
     PUSH_REG (RCX)
     PUSH_REG (R9)

@@ -160,7 +160,7 @@ int CodeBufferWriteFromFile (CodeBuffer_t * cb, size_t len, FILE * file)
     return 0;
 }
 
-void ProcessLinkSegmet (FILE * lnkbl_f, CodeBuffer_t * cb, Elf64_Shdr * shdr_s, )
+void ProcessLinkSegmet (FILE * lnkbl_f, CodeBuffer_t * cb, Elf64_Shdr * shdr_s)
 {
 
     Elf64_Rela rela_s = {};

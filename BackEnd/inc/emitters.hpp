@@ -20,6 +20,8 @@ typedef struct
     RELOC_TABLE  relc_tab   = {};
 } CodeBuffer_t;
 
+void CreateElf64File    (TOKEN_TABLE * token_table, const char * file_name);
+
 int  code_buffer_init   (CodeBuffer_t * cb);
 void code_buffer_free   (CodeBuffer_t * cb);
 int  code_buffer_write  (CodeBuffer_t * cb, const uint8_t* bytes, size_t len);
@@ -85,11 +87,10 @@ void InputFunc          (CodeBuffer_t * cb);
 
 void                Link2Files             (CodeBuffer_t * cb, const char * likable_file);
 
-void                ApplyRelocations       (CodeBuffer_t * cb);
+void                ApplyRelocations       (CodeBuffer_t * cb, Elf64_Rela * rela_table);
 void                AddRelocation          (RELOC_TABLE * reloc_table, const char * target, int64_t patch_pos);
 void                AddLabel               (SYMBOL_TABLE * symbol_tab, const char * label_name, int64_t address);  
-ALL_OPS_DATAS *     OpsCtorBin             (TOKEN_TABLE * table, CodeBuffer_t * cb);
-void                ReadTreeBin            (TOKEN_TABLE * token_table, const char * file_name);
+void                ReadTreeBin            (TOKEN_TABLE * token_table, CodeBuffer_t * cb, CodeBuffer_t * cb_data);
 
 void                ReadFuncArgsBin        (NODE * node, CodeBuffer_t * cb);
 void                ReverseReadFuncArgsBin (NODE * node, CodeBuffer_t * cb, size_t * n_args);
@@ -102,4 +103,3 @@ NODE *              InitAsmFuncBin         (NODE * node, CodeBuffer_t * cb);
 
 void                AsmOpsCompareBin       (NODE * node, CodeBuffer_t * cb, OPERATORS mode, int label, ENUM_IDENT_DATA_TYPE data_type);
 void                AsmConditionalBin      (NODE * node, CodeBuffer_t * cb, OPERATORS mode, int label);
-void                ReadTreeBin            (TOKEN_TABLE * token_table, const char * file_name);

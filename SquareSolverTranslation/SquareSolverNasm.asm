@@ -932,7 +932,7 @@ sqrt_by_Newton:
 		pop rax
 		mov r8, rax
 		mov rcx, rax
-		.newton_loop:
+	.newton_loop:
 		mov rax, r8
 		xor rdx, rdx
 		div rcx
@@ -942,7 +942,7 @@ sqrt_by_Newton:
 		jae .done
 		mov rcx, rax
 		jmp .newton_loop
-		.done:
+	.done:
 		push rcx
 		push r9
 		ret

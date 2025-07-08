@@ -2,7 +2,7 @@
 
 #include "../../inc/Language.h"
 
-size_t SIZE_OF_INPUT_BUFFER = 32;
+const size_t SIZE_OF_INPUT_BUFFER = 32;
 
 /* Thies function needs an INPUT_BUFFER into .data section. Size of INPUT_BUFFER must be SIZE_OF_INPUT_BUFFER bytes. */
 

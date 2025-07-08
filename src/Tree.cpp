@@ -5,7 +5,10 @@ const char * GOD_SAY_YES_COLOR  = "#B2EC5D";
 
 /*
 При парсинге сделать везде один пробел
+
+Переделать в кодгене с глобальной структуры строк на локальную в ReadTree
 */
+
 static size_t n_funcs = 0;
 
 TOKEN_TABLE * TableCtor (const char * file_with_data)
@@ -602,9 +605,28 @@ char * ProcessAlphas (TOKEN_TABLE * table, IDENTIFICATORS_TABLE * ident_table,  
         table->n_tokens -= 2;
 
         text = ProcessInitIdent (table, ident_table, text, ip, CHAR, sizeof ("char *"));
+
+        *ip += 1;
+
+        table->tokens_array[*ip].token_type = OP;
+        table->tokens_array[*ip].token.op   = EQUALS;
+
+        SKIP_UNTIL_(START_TEXT);
+        *ip += 1;
+        text++;
+
+        text = ProcessCharIdent (table, ident_table, text, ip);
+
         COLOR_PRINT (YELLOW, "ident type = %d\n", table->tokens_array[*ip].token.ident.ident_data_type);
 
-        ADD_ID_INTO_TABLE ();
+        table->tokens_array[*ip].token.ident.ident_num = *ip;
+        ident_table->existing_ids[ident_table->free_box++] = *ip;
+
+        if (ident_table->table_size <= ident_table->free_box)
+        {
+            ident_table->table_size  += IDS_TABLE_SIZE_DELTA;
+            ident_table->existing_ids = (size_t *) realloc (ident_table->existing_ids, ident_table->table_size * sizeof (u_int64_t));
+        }
     }
 // ====================================== PROCESS MATH FUNCS =====================================
 

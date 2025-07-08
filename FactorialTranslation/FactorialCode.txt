@@ -3,7 +3,7 @@ shema_buhicha entry ()
     int fact_num piva_z cha_cha_skaju vodka
     size_t mama piva_z factorial (fact_num) vodka
 
-    na_utro_posle_NK ("factorial %d = %d ", fact_num, mama) vodka
+    char * popka = "durachok" vodka
     
     rvota mama vodka
 }
@@ -23,3 +23,6 @@ shema_buhicha factorial (int num)
 
     rvota mnogo vodka
 }
+
+
+

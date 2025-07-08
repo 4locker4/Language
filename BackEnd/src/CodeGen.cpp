@@ -6,7 +6,7 @@ static int WHILE_COUNTER = 0;
 
 static size_t lable_counter    = 0;
 
-NODE_WITH_STR nodes_with_strings = {};
+static NODE_WITH_STR nodes_with_strings = {};
 
 void ReadTree (TOKEN_TABLE * token_table, const char * file_name)
 {

@@ -9,9 +9,11 @@ flags = -c -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-e
 		-Wsign-promo -Wstack-usage=8192 -Wstrict-aliasing -Wstrict-null-sentinel -Wtype-limits 	\
 		-Wwrite-strings -Werror=vla
 
-includes = ./inc/Tree.h ./inc/Utils.h ./inc/Asserts.h ./inc/Language.h ./BackEnd/inc/AdditionalFuncs.hpp
+includes = ./inc/Tree.h ./inc/Utils.h ./inc/Asserts.h ./inc/Language.h ./BackEnd/inc/AdditionalFuncs.hpp ./BackEnd/inc/Elf64Gen.hpp \
+			./BackEnd/inc/EmittersDSL.hpp ./BackEnd/inc/emitters.hpp
 
-sources = ./src/Language.cpp ./src/Tree.cpp ./src/Utils.cpp ./BackEnd/src/CodeGen.cpp
+sources = ./src/Language.cpp ./src/Tree.cpp ./src/Utils.cpp ./BackEnd/src/CodeGen.cpp ./BackEnd/src/ElfFiller.cpp ./BackEnd/src/emitters.cpp \
+		  ./BackEnd/src/LinkerPrototype.cpp
 
 objects = $(sources:.cpp=.o)
 
@@ -37,6 +39,7 @@ factorial:
 	nasm -f elf64 ./BackEnd/src/Printf.asm -o ./BackEnd/src/Printf.o
 	nasm -f elf64 ./FactorialTranslation/FactorialNasm.asm -o ./FactorialTranslation/FactorialNasm.o
 	ld -o ./FactorialTranslation/FactorialProg.out ./FactorialTranslation/FactorialNasm.o ./BackEnd/src/Printf.o
+	chmod +x ./FactorialTranslation/FactorialBin.txt
 
 square:
 	./Language.out SquareSolver
@@ -47,10 +50,10 @@ square:
 	ld -o  SquareSolverTranslation/SquareSolverProg.out SquareSolverTranslation/SquareSolverNasm.o ./BackEnd/src/Printf.o
 
 run_factorial:
-	./FactorialTranslation/FactorialProg.out
+	./FactorialTranslation/FactorialProgFromNasm.out
 
 run_square:
-	./SquareSolverTranslation/SquareSolverProg.out
+	./SquareSolverTranslation/SquareSolverProgFromNasm.out
 
 clean:
 	rm -rf *.o

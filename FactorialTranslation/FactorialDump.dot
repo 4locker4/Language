@@ -2,177 +2,174 @@ digraph differentiator{
 	rankdir=UD;
 	bgcolor="#FFFFFF";	node[color="black", fontsize=14];
 	fixedsize=true;
-	Q0x58b611e899d0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x58b611e89a50} | {right | 0x58b611e8a4d0}}}" ]
-	Q0x58b611e89a50[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC IDENT | entry} | {{left | 0x58b611e89ad0} | {right | 0x58b611e89b50}}}" ]
-	Q0x58b611e89ad0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c45358f0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x6504c4535970} | {right | 0x6504c4536370}}}" ]
+	Q0x6504c4535970[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC IDENT | entry} | {{left | 0x6504c45359f0} | {right | 0x6504c4535a70}}}" ]
+	Q0x6504c45359f0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e89b50[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x58b611e89bd0} | {right | 0x58b611e89d50}}}" ]
-	Q0x58b611e89bd0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x58b611e89c50} | {right | 0x58b611e89cd0}}}" ]
-	Q0x58b611e89c50[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{fact_num | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4535a70[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x6504c4535af0} | {right | 0x6504c4535c70}}}" ]
+	Q0x6504c4535af0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x6504c4535b70} | {right | 0x6504c4535bf0}}}" ]
+	Q0x6504c4535b70[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{fact_num | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e89cd0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{CHORT | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4535bf0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{CHORT | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e89bd0 -> Q0x58b611e89c50
-	Q0x58b611e89bd0 -> Q0x58b611e89cd0
+	Q0x6504c4535af0 -> Q0x6504c4535b70
+	Q0x6504c4535af0 -> Q0x6504c4535bf0
 
-	Q0x58b611e89d50[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x58b611e89dd0} | {right | 0x58b611e89fd0}}}" ]
-	Q0x58b611e89dd0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x58b611e89e50} | {right | 0x58b611e89ed0}}}" ]
-	Q0x58b611e89e50[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mama | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4535c70[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x6504c4535cf0} | {right | 0x6504c4535ef0}}}" ]
+	Q0x6504c4535cf0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x6504c4535d70} | {right | 0x6504c4535df0}}}" ]
+	Q0x6504c4535d70[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mama | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e89ed0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC CALL | factorial} | {{left | 0x58b611e89f50} | {right | (nil)}}}" ]
-	Q0x58b611e89f50[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{fact_num | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4535df0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC CALL | factorial} | {{left | 0x6504c4535e70} | {right | (nil)}}}" ]
+	Q0x6504c4535e70[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{fact_num | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e89ed0 -> Q0x58b611e89f50
+	Q0x6504c4535df0 -> Q0x6504c4535e70
 
-	Q0x58b611e89dd0 -> Q0x58b611e89e50
-	Q0x58b611e89dd0 -> Q0x58b611e89ed0
+	Q0x6504c4535cf0 -> Q0x6504c4535d70
+	Q0x6504c4535cf0 -> Q0x6504c4535df0
 
-	Q0x58b611e89fd0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x58b611e8a050} | {right | 0x58b611e8a250}}}" ]
-	Q0x58b611e8a050[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC CALL | MyPrintf} | {{left | 0x58b611e8a0d0} | {right | (nil)}}}" ]
-	Q0x58b611e8a0d0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{STRING | factorial %d = %d } | {{left | 0x58b611e8a150} | {right | (nil)}}}" ]
-	Q0x58b611e8a150[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{fact_num | {{left | 0x58b611e8a1d0} | {right | (nil)}}}" ]
-	Q0x58b611e8a1d0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mama | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4535ef0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x6504c4535f70} | {right | 0x6504c45360f0}}}" ]
+	Q0x6504c4535f70[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x6504c4535ff0} | {right | 0x6504c4536070}}}" ]
+	Q0x6504c4535ff0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{popka | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8a150 -> Q0x58b611e8a1d0
+	Q0x6504c4536070[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{{STRING | durachok} | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8a0d0 -> Q0x58b611e8a150
+	Q0x6504c4535f70 -> Q0x6504c4535ff0
+	Q0x6504c4535f70 -> Q0x6504c4536070
 
-	Q0x58b611e8a050 -> Q0x58b611e8a0d0
+	Q0x6504c45360f0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x6504c4536170} | {right | 0x6504c45362f0}}}" ]
+	Q0x6504c4536170[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{RETURN | {{left | 0x6504c45361f0} | {right | 0x6504c4536270}}}" ]
+	Q0x6504c45361f0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mama | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8a250[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x58b611e8a2d0} | {right | 0x58b611e8a450}}}" ]
-	Q0x58b611e8a2d0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{RETURN | {{left | 0x58b611e8a350} | {right | 0x58b611e8a3d0}}}" ]
-	Q0x58b611e8a350[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mama | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4536270[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8a3d0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4536170 -> Q0x6504c45361f0
+	Q0x6504c4536170 -> Q0x6504c4536270
 
-	Q0x58b611e8a2d0 -> Q0x58b611e8a350
-	Q0x58b611e8a2d0 -> Q0x58b611e8a3d0
+	Q0x6504c45362f0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8a450[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c45360f0 -> Q0x6504c4536170
+	Q0x6504c45360f0 -> Q0x6504c45362f0
 
-	Q0x58b611e8a250 -> Q0x58b611e8a2d0
-	Q0x58b611e8a250 -> Q0x58b611e8a450
+	Q0x6504c4535ef0 -> Q0x6504c4535f70
+	Q0x6504c4535ef0 -> Q0x6504c45360f0
 
-	Q0x58b611e89fd0 -> Q0x58b611e8a050
-	Q0x58b611e89fd0 -> Q0x58b611e8a250
+	Q0x6504c4535c70 -> Q0x6504c4535cf0
+	Q0x6504c4535c70 -> Q0x6504c4535ef0
 
-	Q0x58b611e89d50 -> Q0x58b611e89dd0
-	Q0x58b611e89d50 -> Q0x58b611e89fd0
+	Q0x6504c4535a70 -> Q0x6504c4535af0
+	Q0x6504c4535a70 -> Q0x6504c4535c70
 
-	Q0x58b611e89b50 -> Q0x58b611e89bd0
-	Q0x58b611e89b50 -> Q0x58b611e89d50
+	Q0x6504c4535970 -> Q0x6504c45359f0
+	Q0x6504c4535970 -> Q0x6504c4535a70
 
-	Q0x58b611e89a50 -> Q0x58b611e89ad0
-	Q0x58b611e89a50 -> Q0x58b611e89b50
+	Q0x6504c4536370[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x6504c45363f0} | {right | 0x6504c45374f0}}}" ]
+	Q0x6504c45363f0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC IDENT | factorial} | {{left | 0x6504c4536470} | {right | 0x6504c45364f0}}}" ]
+	Q0x6504c4536470[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{{PARAM | num} | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8a4d0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x58b611e8a550} | {right | 0x58b611e8b650}}}" ]
-	Q0x58b611e8a550[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC IDENT | factorial} | {{left | 0x58b611e8a5d0} | {right | 0x58b611e8a650}}}" ]
-	Q0x58b611e8a5d0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{{PARAM | num} | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c45364f0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x6504c4536570} | {right | 0x6504c45366f0}}}" ]
+	Q0x6504c4536570[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x6504c45365f0} | {right | 0x6504c4536670}}}" ]
+	Q0x6504c45365f0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mnogo | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8a650[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x58b611e8a6d0} | {right | 0x58b611e8a850}}}" ]
-	Q0x58b611e8a6d0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x58b611e8a750} | {right | 0x58b611e8a7d0}}}" ]
-	Q0x58b611e8a750[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mnogo | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4536670[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{num | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8a7d0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{num | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4536570 -> Q0x6504c45365f0
+	Q0x6504c4536570 -> Q0x6504c4536670
 
-	Q0x58b611e8a6d0 -> Q0x58b611e8a750
-	Q0x58b611e8a6d0 -> Q0x58b611e8a7d0
+	Q0x6504c45366f0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x6504c4536770} | {right | 0x6504c4537270}}}" ]
+	Q0x6504c4536770[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{IF | {{left | 0x6504c45368f0} | {right | 0x6504c4536970}}}" ]
+	Q0x6504c45368f0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{MORE | {{left | 0x6504c45367f0} | {right | 0x6504c4536870}}}" ]
+	Q0x6504c45367f0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{num | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8a850[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x58b611e8a8d0} | {right | 0x58b611e8b3d0}}}" ]
-	Q0x58b611e8a8d0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{IF | {{left | 0x58b611e8aa50} | {right | 0x58b611e8aad0}}}" ]
-	Q0x58b611e8aa50[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{MORE | {{left | 0x58b611e8a950} | {right | 0x58b611e8a9d0}}}" ]
-	Q0x58b611e8a950[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{num | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4536870[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{1 | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8a9d0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{1 | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c45368f0 -> Q0x6504c45367f0
+	Q0x6504c45368f0 -> Q0x6504c4536870
 
-	Q0x58b611e8aa50 -> Q0x58b611e8a950
-	Q0x58b611e8aa50 -> Q0x58b611e8a9d0
+	Q0x6504c4536970[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x6504c45369f0} | {right | 0x6504c4536c70}}}" ]
+	Q0x6504c45369f0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x6504c4536a70} | {right | 0x6504c4536bf0}}}" ]
+	Q0x6504c4536a70[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{num | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8aad0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x58b611e8ab50} | {right | 0x58b611e8add0}}}" ]
-	Q0x58b611e8ab50[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x58b611e8abd0} | {right | 0x58b611e8ad50}}}" ]
-	Q0x58b611e8abd0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{num | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4536bf0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{SUB | {{left | 0x6504c4536af0} | {right | 0x6504c4536b70}}}" ]
+	Q0x6504c4536af0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{num | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8ad50[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{SUB | {{left | 0x58b611e8ac50} | {right | 0x58b611e8acd0}}}" ]
-	Q0x58b611e8ac50[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{num | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4536b70[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{1 | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8acd0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{1 | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4536bf0 -> Q0x6504c4536af0
+	Q0x6504c4536bf0 -> Q0x6504c4536b70
 
-	Q0x58b611e8ad50 -> Q0x58b611e8ac50
-	Q0x58b611e8ad50 -> Q0x58b611e8acd0
+	Q0x6504c45369f0 -> Q0x6504c4536a70
+	Q0x6504c45369f0 -> Q0x6504c4536bf0
 
-	Q0x58b611e8ab50 -> Q0x58b611e8abd0
-	Q0x58b611e8ab50 -> Q0x58b611e8ad50
+	Q0x6504c4536c70[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x6504c4536cf0} | {right | 0x6504c4536ef0}}}" ]
+	Q0x6504c4536cf0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x6504c4536d70} | {right | 0x6504c4536df0}}}" ]
+	Q0x6504c4536d70[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mnojit | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8add0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x58b611e8ae50} | {right | 0x58b611e8b050}}}" ]
-	Q0x58b611e8ae50[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x58b611e8aed0} | {right | 0x58b611e8af50}}}" ]
-	Q0x58b611e8aed0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mnojit | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4536df0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC CALL | factorial} | {{left | 0x6504c4536e70} | {right | (nil)}}}" ]
+	Q0x6504c4536e70[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{num | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8af50[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{{FUNC CALL | factorial} | {{left | 0x58b611e8afd0} | {right | (nil)}}}" ]
-	Q0x58b611e8afd0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{num | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4536df0 -> Q0x6504c4536e70
 
-	Q0x58b611e8af50 -> Q0x58b611e8afd0
+	Q0x6504c4536cf0 -> Q0x6504c4536d70
+	Q0x6504c4536cf0 -> Q0x6504c4536df0
 
-	Q0x58b611e8ae50 -> Q0x58b611e8aed0
-	Q0x58b611e8ae50 -> Q0x58b611e8af50
+	Q0x6504c4536ef0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x6504c4536f70} | {right | 0x6504c45371f0}}}" ]
+	Q0x6504c4536f70[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x6504c4536ff0} | {right | 0x6504c4537170}}}" ]
+	Q0x6504c4536ff0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mnogo | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8b050[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x58b611e8b0d0} | {right | 0x58b611e8b350}}}" ]
-	Q0x58b611e8b0d0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{EQUALS | {{left | 0x58b611e8b150} | {right | 0x58b611e8b2d0}}}" ]
-	Q0x58b611e8b150[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mnogo | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4537170[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{MUL | {{left | 0x6504c4537070} | {right | 0x6504c45370f0}}}" ]
+	Q0x6504c4537070[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mnogo | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8b2d0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{MUL | {{left | 0x58b611e8b1d0} | {right | 0x58b611e8b250}}}" ]
-	Q0x58b611e8b1d0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mnogo | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c45370f0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mnojit | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8b250[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mnojit | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4537170 -> Q0x6504c4537070
+	Q0x6504c4537170 -> Q0x6504c45370f0
 
-	Q0x58b611e8b2d0 -> Q0x58b611e8b1d0
-	Q0x58b611e8b2d0 -> Q0x58b611e8b250
+	Q0x6504c4536f70 -> Q0x6504c4536ff0
+	Q0x6504c4536f70 -> Q0x6504c4537170
 
-	Q0x58b611e8b0d0 -> Q0x58b611e8b150
-	Q0x58b611e8b0d0 -> Q0x58b611e8b2d0
+	Q0x6504c45371f0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8b350[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4536ef0 -> Q0x6504c4536f70
+	Q0x6504c4536ef0 -> Q0x6504c45371f0
 
-	Q0x58b611e8b050 -> Q0x58b611e8b0d0
-	Q0x58b611e8b050 -> Q0x58b611e8b350
+	Q0x6504c4536c70 -> Q0x6504c4536cf0
+	Q0x6504c4536c70 -> Q0x6504c4536ef0
 
-	Q0x58b611e8add0 -> Q0x58b611e8ae50
-	Q0x58b611e8add0 -> Q0x58b611e8b050
+	Q0x6504c4536970 -> Q0x6504c45369f0
+	Q0x6504c4536970 -> Q0x6504c4536c70
 
-	Q0x58b611e8aad0 -> Q0x58b611e8ab50
-	Q0x58b611e8aad0 -> Q0x58b611e8add0
+	Q0x6504c4536770 -> Q0x6504c45368f0
+	Q0x6504c4536770 -> Q0x6504c4536970
 
-	Q0x58b611e8a8d0 -> Q0x58b611e8aa50
-	Q0x58b611e8a8d0 -> Q0x58b611e8aad0
+	Q0x6504c4537270[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x6504c45372f0} | {right | 0x6504c4537470}}}" ]
+	Q0x6504c45372f0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{RETURN | {{left | 0x6504c4537370} | {right | 0x6504c45373f0}}}" ]
+	Q0x6504c4537370[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mnogo | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8b3d0[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{NODE_BUNCH | {{left | 0x58b611e8b450} | {right | 0x58b611e8b5d0}}}" ]
-	Q0x58b611e8b450[style=filled, shape=record, fillcolor="#B2EC5D", width=3, label ="{RETURN | {{left | 0x58b611e8b4d0} | {right | 0x58b611e8b550}}}" ]
-	Q0x58b611e8b4d0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{mnogo | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c45373f0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8b550[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c45372f0 -> Q0x6504c4537370
+	Q0x6504c45372f0 -> Q0x6504c45373f0
 
-	Q0x58b611e8b450 -> Q0x58b611e8b4d0
-	Q0x58b611e8b450 -> Q0x58b611e8b550
+	Q0x6504c4537470[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8b5d0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4537270 -> Q0x6504c45372f0
+	Q0x6504c4537270 -> Q0x6504c4537470
 
-	Q0x58b611e8b3d0 -> Q0x58b611e8b450
-	Q0x58b611e8b3d0 -> Q0x58b611e8b5d0
+	Q0x6504c45366f0 -> Q0x6504c4536770
+	Q0x6504c45366f0 -> Q0x6504c4537270
 
-	Q0x58b611e8a850 -> Q0x58b611e8a8d0
-	Q0x58b611e8a850 -> Q0x58b611e8b3d0
+	Q0x6504c45364f0 -> Q0x6504c4536570
+	Q0x6504c45364f0 -> Q0x6504c45366f0
 
-	Q0x58b611e8a650 -> Q0x58b611e8a6d0
-	Q0x58b611e8a650 -> Q0x58b611e8a850
+	Q0x6504c45363f0 -> Q0x6504c4536470
+	Q0x6504c45363f0 -> Q0x6504c45364f0
 
-	Q0x58b611e8a550 -> Q0x58b611e8a5d0
-	Q0x58b611e8a550 -> Q0x58b611e8a650
+	Q0x6504c45374f0[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
 
-	Q0x58b611e8b650[style=filled, shape=record, fillcolor="#FF7B61", width=3, label ="{END | {{left | (nil)} | {right | (nil)}}}" ]
+	Q0x6504c4536370 -> Q0x6504c45363f0
+	Q0x6504c4536370 -> Q0x6504c45374f0
 
-	Q0x58b611e8a4d0 -> Q0x58b611e8a550
-	Q0x58b611e8a4d0 -> Q0x58b611e8b650
-
-	Q0x58b611e899d0 -> Q0x58b611e89a50
-	Q0x58b611e899d0 -> Q0x58b611e8a4d0
+	Q0x6504c45358f0 -> Q0x6504c4535970
+	Q0x6504c45358f0 -> Q0x6504c4536370
 
 }

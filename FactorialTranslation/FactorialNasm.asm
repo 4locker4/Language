@@ -19,7 +19,7 @@ _start:
 		pop  r15               ;    |--> создаем сегмент переменных
 		add  r15, -8            ;----
 		mov r13, r15           ;------
-		sub  r13, 16           ;      |--> новый адрес стека
+		sub  r13, 24           ;      |--> новый адрес стека
 		push r13               ;      |
 		pop  rsp               ;------
 
@@ -65,25 +65,13 @@ _start:
 		push rax
 		pop qword [r15 - 8]
 ; end EQUALS
-		push r15
-		push r14
-		push rsp
-		push qword [r15 - 8]           ; переменная: mama
-		push qword [r15 - 0]           ; переменная: fact_num
+
+; EQUALSE
+
 		lea rsi, STRI_NUM_18
 		push rsi
-
-		call MyPrintf
-
-		pop rax
-		push rsp
-		pop rbx
-		add rbx, 32
-		push rbx
-		pop rsp
-		pop r14
-		pop r15
-		push rax
+		pop qword [r15 - 0]
+; end EQUALS
 
 ; RETURN
 
@@ -270,4 +258,4 @@ section .data
 
  		 times 8 dq 0
 	INPUT_BUFFER: times 32 dq 0
-	STRI_NUM_18: db 'factorial %d = %d ', 0
+	STRI_NUM_18: db 'durachok', 0

@@ -12,14 +12,6 @@ int code_buffer_init (CodeBuffer_t * cb)
         exit (1);
     }
 
-    cb->symb_tab.capacity = START_TAB_CAPACITY;
-    cb->symb_tab.labels   = (SYMBOL *) calloc (START_TAB_CAPACITY, sizeof (SYMBOL));
-    cb->symb_tab.free_box = 0;
-
-    cb->relc_tab.capacity = START_TAB_CAPACITY;
-    cb->relc_tab.relocation = (RELOCATION *) calloc (START_TAB_CAPACITY, sizeof (RELOCATION));
-    cb->relc_tab.capacity = 0;
-
     return 0;
 }
 
@@ -63,135 +55,134 @@ void emit_cqo (CodeBuffer_t * cb)
 // =+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+ START EMMITERS ZONE =+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+ //
 
 //====================== Emitter for func call ======================//
-void emit_call_func (CodeBuffer_t * cb, const char * target)              
+void emit_call_func (CodeBuffer_t * cb, const char * target, RELOC_TABLE * rel_t)           
 {
     uint8_t opcode = 0xE8;
+    uint8_t bytes[] = { 0, 0, 0, 0 };
 
     code_buffer_write (cb, &opcode, 1);
 
-    AddRelocation (&cb->relc_tab, target, cb->offset);
-
-    uint8_t bytes[] = { 0, 0, 0, 0 };
+    AddRelocation (rel_t, target, cb->offset);
     code_buffer_write (cb, bytes, 4);
 }
 
 //========================= Emitter for ja =========================//
-void emit_ja (CodeBuffer_t * cb, const char * label)
+void emit_ja (CodeBuffer_t * cb, const char * label, RELOC_TABLE * rel_t)
 {
     uint8_t opcode[] = {0x0F, 0x87};                              // opcode: jmp with 32-bit relative offset
     uint8_t bytes[] = { 0, 0, 0, 0 };
     code_buffer_write (cb, opcode, 2);
-    code_buffer_write (cb, bytes, 4);
 
-    AddRelocation (&cb->relc_tab, label, cb->offset);
+    AddRelocation (rel_t, label, cb->offset);
+    code_buffer_write (cb, bytes, 4);
 }
 
 //========================= Emitter for jb =========================//
-void emit_jb (CodeBuffer_t * cb, const char * label)
+void emit_jb (CodeBuffer_t * cb, const char * label, RELOC_TABLE * rel_t)
 {
     uint8_t opcode[] = {0x0F, 0x82};                              // opcode: jmp with 32-bit relative offset
     uint8_t bytes[] = { 0, 0, 0, 0 };
     code_buffer_write (cb, opcode, 2);
+    
+    AddRelocation (rel_t, label, cb->offset);
     code_buffer_write (cb, bytes, 4);
-
-    AddRelocation (&cb->relc_tab, label, cb->offset);
 }
 
 //========================= Emitter for jae ========================//
-void emit_jae (CodeBuffer_t * cb, const char * label)
+void emit_jae (CodeBuffer_t * cb, const char * label, RELOC_TABLE * rel_t)
 {
     uint8_t opcode[] = {0x0F, 0x83};                              // opcode: jmp with 32-bit relative offset
     uint8_t bytes[] = { 0, 0, 0, 0 };
     code_buffer_write (cb, opcode, 2);
-    code_buffer_write (cb, bytes, 4);
 
-    AddRelocation (&cb->relc_tab, label, cb->offset);
+    AddRelocation (rel_t, label, cb->offset);
+    code_buffer_write (cb, bytes, 4);
 }
 
 //========================= Emitter for jbe ========================//
-void emit_jbe (CodeBuffer_t * cb, const char * label)
+void emit_jbe (CodeBuffer_t * cb, const char * label, RELOC_TABLE * rel_t)
 {
     uint8_t opcode[] = {0x0F, 0x86};                              // opcode: jmp with 32-bit relative offset
     uint8_t bytes[] = { 0, 0, 0, 0 };
     code_buffer_write (cb, opcode, 2);
-    code_buffer_write (cb, bytes, 4);
 
-    AddRelocation (&cb->relc_tab, label, cb->offset);
+    AddRelocation (rel_t, label, cb->offset);
+    code_buffer_write (cb, bytes, 4);
 }
 
 //========================= Emitter for je ========================//
-void emit_je (CodeBuffer_t * cb, const char * label)
+void emit_je (CodeBuffer_t * cb, const char * label, RELOC_TABLE * rel_t)
 {
     uint8_t opcode[] = {0x0F, 0x84};                              // opcode: jmp with 32-bit relative offset
     uint8_t bytes[] = { 0, 0, 0, 0 };
     code_buffer_write (cb, opcode, 2);
+    
+    AddRelocation (rel_t, label, cb->offset);
     code_buffer_write (cb, bytes, 4);
-
-    AddRelocation (&cb->relc_tab, label, cb->offset);
 }
 
 //========================= Emitter for jge ========================//
-void emit_jge (CodeBuffer_t * cb, const char * label)
+void emit_jge (CodeBuffer_t * cb, const char * label, RELOC_TABLE * rel_t)
 {
     uint8_t opcode[] = {0x0F, 0x8D};                              // opcode: jmp with 32-bit relative offset
     uint8_t bytes[] = { 0, 0, 0, 0 };
     code_buffer_write (cb, opcode, 2);
+    
+    AddRelocation (rel_t, label, cb->offset);
     code_buffer_write (cb, bytes, 4);
-
-    AddRelocation (&cb->relc_tab, label, cb->offset);
 }
 
 //========================= Emitter for jle ========================//
-void emit_jle (CodeBuffer_t * cb, const char * label)
+void emit_jle (CodeBuffer_t * cb, const char * label, RELOC_TABLE * rel_t)
 {
     uint8_t opcode[] = {0x0F, 0x8E};                              // opcode: jmp with 32-bit relative offset
     uint8_t bytes[] = { 0, 0, 0, 0 };
     code_buffer_write (cb, opcode, 2);
+    
+    AddRelocation (rel_t, label, cb->offset);
     code_buffer_write (cb, bytes, 4);
-
-    AddRelocation (&cb->relc_tab, label, cb->offset);
 }
 
 //========================= Emitter for jg ========================//
-void emit_jg (CodeBuffer_t * cb, const char * label)
+void emit_jg (CodeBuffer_t * cb, const char * label, RELOC_TABLE * rel_t)
 {
     uint8_t opcode[] = {0x0F, 0x8F};                              // opcode: jmp with 32-bit relative offset
     uint8_t bytes[] = { 0, 0, 0, 0 };
     code_buffer_write (cb, opcode, 2);
+    
+    AddRelocation (rel_t, label, cb->offset);
     code_buffer_write (cb, bytes, 4);
-
-    AddRelocation (&cb->relc_tab, label, cb->offset);
 }
 
 //========================= Emitter for jl ========================//
-void emit_jl (CodeBuffer_t * cb, const char * label)
+void emit_jl (CodeBuffer_t * cb, const char * label, RELOC_TABLE * rel_t)
 {
     uint8_t opcode[] = {0x0F, 0x8C};                              // opcode: jmp with 32-bit relative offset
     uint8_t bytes[] = { 0, 0, 0, 0 };
     code_buffer_write (cb, opcode, 2);
+    
+    AddRelocation (rel_t, label, cb->offset);
     code_buffer_write (cb, bytes, 4);
-
-    AddRelocation (&cb->relc_tab, label, cb->offset);
 }
 
-void emit_jne (CodeBuffer_t * cb, const char * label)
+void emit_jne (CodeBuffer_t * cb, const char * label, RELOC_TABLE * rel_t)
 {
     uint8_t opcode[] = {0x0F, 0x85};                              // opcode: jmp with 32-bit relative offset
     uint8_t bytes[] = { 0, 0, 0, 0 };
     code_buffer_write (cb, opcode, 2);
+    
+    AddRelocation (rel_t, label, cb->offset);
     code_buffer_write (cb, bytes, 4);
-
-    AddRelocation (&cb->relc_tab, label, cb->offset);
 }
 //==================== Emitter for jmp ====================//
-void emit_jmp (CodeBuffer_t * cb, const char * label)
+void emit_jmp (CodeBuffer_t * cb, const char * label, RELOC_TABLE * rel_t)
 {
     uint8_t opcode = 0xE9;                              // opcode: jmp with 32-bit relative offset
     uint8_t bytes[] = { 0, 0, 0, 0 };
     code_buffer_write (cb, &opcode, 1);
+    
+    AddRelocation (rel_t, label, cb->offset);
     code_buffer_write (cb, bytes, 4);
-
-    AddRelocation (&cb->relc_tab, label, cb->offset);
 }
 /*
                 +=================================+
@@ -207,7 +198,7 @@ void emit_idiv_reg (CodeBuffer_t * cb, REGISTERS dest_reg)
 
     if (dest_reg >= 8) rex |= 0x01;
 
-    uint8_t opcode = 0x7F;
+    uint8_t opcode = 0xF7;
 
     uint8_t mod = 0x03;
     uint8_t reg = 0x07;             // для idiv такой
@@ -261,7 +252,7 @@ void emit_push_reg (CodeBuffer_t * cb, REGISTERS dest_reg)
     }
     else
     {
-        uint32_t rex = 0x41;
+        uint32_t rex = 0x49;
         uint32_t opcode = 0x50 + (dest_reg & 0x07);
         uint8_t bytes[] = { rex, opcode };
         code_buffer_write (cb, bytes, 2);
@@ -272,7 +263,7 @@ void emit_push_mem (CodeBuffer_t * cb, REGISTERS dest_reg, int32_t disp)
 {
     uint32_t rex = 0x48;
     
-    if (dest_reg > 8) rex |= 0x01;
+    if (dest_reg >= 8) rex |= 0x01;
 
     uint32_t opcode = 0xFF;
 
@@ -280,7 +271,7 @@ void emit_push_mem (CodeBuffer_t * cb, REGISTERS dest_reg, int32_t disp)
     uint8_t reg = 0x00;
     uint8_t rm  = 0x00;
 
-    if (disp == 0 && (dest_reg & 0x7) != 0x5)                       // (dest_reg & 0x7) != 0x5 - это регистр RBP, который требует обязательного смещения.
+    if (disp == 0 && dest_reg != RBP)                       // (dest_reg & 0x7) != 0x5 - это регистр RBP, который требует обязательного смещения.
     {
         mod = 0x00  << 6;       // mod=00 без смещения
         reg = 0b110 << 3;       // reg=110 (6 для PUSH)
@@ -342,8 +333,6 @@ void emit_push_num (CodeBuffer_t * cb, int32_t imm)
 //====================== Emitter for push r_x ======================//
 void emit_pop_reg (CodeBuffer_t * cb, REGISTERS dest_reg)
 {
-    uint8_t bytes = -1;
-
     if (dest_reg < 8)
     {
         uint8_t bytes = 0x58 + dest_reg;
@@ -351,7 +340,7 @@ void emit_pop_reg (CodeBuffer_t * cb, REGISTERS dest_reg)
     }
     else
     {
-        uint8_t rex = 0x41;
+        uint8_t rex = 0x49;
         uint8_t opcode = 0x58 + (dest_reg & 0x07);
         uint8_t bytes[] = { rex, opcode };
         code_buffer_write (cb, bytes, 2);
@@ -450,8 +439,11 @@ void emit_neg_reg (CodeBuffer_t * cb, REGISTERS dest_reg)
 void emit_sub_reg_reg (CodeBuffer_t * cb, REGISTERS dest_reg, REGISTERS src_reg)
 {
     uint8_t rex = 0x48;                                 // REX.W
+    if (dest_reg >= 8) rex |= 0x01;
+    if (src_reg  >= 8) rex |= 0x04;
+
     uint8_t opcode = 0x2B;                              // opcode: sub when subtracting a register from a register.
-    uint8_t modrm = (uint8_t) (0xC0 | (src_reg << 3) | dest_reg);
+    uint8_t modrm = (uint8_t) (0xC0 | (src_reg << 3) | (dest_reg & 7));
     uint8_t bytes[] = { rex, opcode, modrm };
     code_buffer_write (cb, bytes, 3);
 }
@@ -459,7 +451,7 @@ void emit_sub_reg_reg (CodeBuffer_t * cb, REGISTERS dest_reg, REGISTERS src_reg)
 void emit_sub_reg_num (CodeBuffer_t * cb, REGISTERS dest_reg, int32_t imm)
 {
     uint8_t rex = 0x48;
-    if (dest_reg >= 8) rex |= 0x04;
+    if (dest_reg >= 8) rex |= 0x01;
 
     uint8_t mod = 0x03;
     uint8_t reg = 0x05;     // 5 для sub
@@ -503,8 +495,11 @@ void emit_sub_r8_imm8 (CodeBuffer_t * cb, REGISTERS dest_reg, uint8_t imm)
 void emit_add_reg_reg (CodeBuffer_t * cb, REGISTERS dest_reg, REGISTERS src_reg)
 {
     uint8_t rex = 0x48;                                 // REX.W
+    if (dest_reg >= 8) rex |= 0x01;
+    if (src_reg  >= 8) rex |= 0x04;
+
     uint8_t opcode = 0x01;                              // opcode: add register to register
-    uint8_t modrm = (uint8_t) (0xC0 | (src_reg << 3) | dest_reg);
+    uint8_t modrm = (uint8_t) (0xC0 | (src_reg << 3) | (dest_reg & 7));
     uint8_t bytes[] = { rex, opcode, modrm };
     code_buffer_write (cb, bytes, 3);
 }
@@ -512,7 +507,7 @@ void emit_add_reg_reg (CodeBuffer_t * cb, REGISTERS dest_reg, REGISTERS src_reg)
 void emit_add_reg_num (CodeBuffer_t * cb, REGISTERS dest_reg, int32_t imm)
 {
     uint8_t rex = 0x48;
-    if (dest_reg >= 8) rex |= 0x04;
+    if (dest_reg >= 8) rex |= 0x01;
 
     uint8_t mod = 0x03;
     uint8_t reg = 0x00;     // 0 для add
@@ -561,7 +556,7 @@ void emit_cmp_reg_reg (CodeBuffer_t * cb, REGISTERS reg1, REGISTERS reg2)
 void emit_cmp_reg_num (CodeBuffer_t * cb, REGISTERS dest_reg, int32_t imm)
 {
     uint8_t rex = 0x48;
-    if (dest_reg >= 8) rex |= 0x04;
+    if (dest_reg >= 8) rex |= 0x01;
 
     uint8_t opcode = 0x81;
 
@@ -590,9 +585,8 @@ void emit_cmp_r8_imm8 (CodeBuffer_t * cb, REGISTERS dest_reg, uint8_t imm)
     code_buffer_write (cb, bytes, 3);
 }
 
-void emit_lea_reg_label (CodeBuffer_t * cb, REGISTERS reg, const char * label) 
+void emit_lea_reg_label (CodeBuffer_t * cb, REGISTERS reg, const char * label, RELOC_TABLE * rel_t) 
 {
-    // вычисляем смещение относительно RIP (заполним позже)
     uint32_t rip_offset_placeholder = 0;
 
     uint8_t rex = 0x48;
@@ -601,13 +595,15 @@ void emit_lea_reg_label (CodeBuffer_t * cb, REGISTERS reg, const char * label)
     uint8_t opcode = 0x8D;
     uint8_t modrm = ((reg & 0x7) << 3) | 0x05;
 
-    uint8_t bytes[] = { rex, opcode, modrm, 0x00, 0x00, 0x00, 0x00 };
-                                            // для смещения (помним, что little endian)
-
-    int offset_pos = cb->offset; // Позиция для смещения
+    uint8_t bytes[] = { rex, opcode, modrm };
+    
+    int offset_pos = cb->offset;
     code_buffer_write(cb, bytes, sizeof(bytes));
-
-    AddRelocation (&cb->relc_tab, label, cb->offset);
+    
+    uint8_t nul_bytes[] { 0x00, 0x00, 0x00, 0x00 };
+    
+    AddRelocation (rel_t, label, cb->offset);
+    code_buffer_write(cb, nul_bytes, sizeof(nul_bytes));
 }
 
 void emit_lea_reg_addr (CodeBuffer_t * cb, REGISTERS dest_reg, REGISTERS base_reg, int32_t disp)

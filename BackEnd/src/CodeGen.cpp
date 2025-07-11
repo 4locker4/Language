@@ -21,8 +21,7 @@ void ReadTree (TOKEN_TABLE * token_table, const char * file_name)
 
 //====================================== START CODEGEN ======================================
 
-    fprintf (asm_file, "section .note.GNU-stack noexec\n"
-                       "section .text\n\n"
+    fprintf (asm_file, "section .text\n\n"
                        "global _start\n\n"                // Init asm prog
                        "extern MyPrintf\n\n", root->left->data.ident.ident_name);
 

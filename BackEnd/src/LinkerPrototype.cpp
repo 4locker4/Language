@@ -2,6 +2,10 @@
 
 const char * shstrtab_alphabet = ".text\0.data";
 
+static uint32_t SEG_ALIGN = 0x1000;
+
+#define ELF64_ALIGN(current_offset, align) ((current_offset + align - 1) & ~(align - 1))
+
 void Link2Files (const char * likable_file)
 {
     CodeBuffer_t cb      = {};
@@ -42,38 +46,16 @@ void Link2Files (const char * likable_file)
         .e_shstrndx  = 0,                       // .shstrtab - нет
     };
 
-    Elf64_Phdr text_segment =
-    {
-        .p_type     = PT_LOAD,
-        .p_flags    = PF_R | PF_X,
-        .p_offset   = 0x1000,
-        .p_vaddr    = 0x4001000,
-        .p_paddr    = 0x4001000,
-        .p_filesz   = cb.offset,
-        .p_memsz    = cb.offset,
-        .p_align    = 0x1000
-    };
-
-    Elf64_Phdr data_segment =
-    {
-        .p_type     = PT_LOAD,
-        .p_flags    = PF_R | PF_W,
-        .p_offset   = 0x2000,
-        .p_vaddr    = 0x4002000,
-        .p_paddr    = 0x4002000,
-        .p_filesz   = cb_data.offset,
-        .p_memsz    = cb_data.offset,
-        .p_align    = 0x1000
-    };
+    Elf64_Ehdr ehdr_o           = {};
+    Elf64_Shdr text_shdr_o      = {};
+    Elf64_Shdr data_shdr_o      = {};
+    Elf64_Shdr shstrtab_shdr_o  = {};
+    Elf64_Shdr symtab_shdr_o    = {};
+    Elf64_Shdr strtab_shdr_o    = {};
+    Elf64_Shdr rela_text_shdr_o = {};
 
     FILE * likbl_f = fopen (likable_file, "r");
     my_assert (likbl_f);
-
-    Elf64_Ehdr ehdr_o           = {};
-    Elf64_Shdr shstrtab_shdr_o  = {};
-    Elf64_Shdr data_shdr_o      = {};
-    Elf64_Shdr text_shdr_o      = {};
-    Elf64_Shdr rela_text_shdr_o = {};
 
     fread (&ehdr_o, sizeof (Elf64_Ehdr), 1, likbl_f);
 
@@ -115,15 +97,17 @@ void Link2Files (const char * likable_file)
         }
         else if (! strcmp (seg_type, ".symtab"))
         {
-            offset += sizeof (".symtab");
+            fseek (likbl_f, ehdr_o.e_shoff + sizeof (Elf64_Shdr) * i, SEEK_SET);
+            fread (&symtab_shdr_o, sizeof (Elf64_Shdr), 1, likbl_f);
 
-            COLOR_PRINT (YELLOW, "Warning! I can`t read .symtab section\n");
+            offset += sizeof (".symtab");
         }
         else if (! strcmp (seg_type, ".strtab"))
         {
-            offset += sizeof (".strtab");
+            fseek (likbl_f, ehdr_o.e_shoff + sizeof (Elf64_Shdr) * i, SEEK_SET);
+            fread (&strtab_shdr_o, sizeof (Elf64_Shdr), 1, likbl_f);
 
-            COLOR_PRINT (YELLOW, "Warning! I can`t read .strtab section\n");
+            offset += sizeof (".strtab");
         }
         else
         {
@@ -133,14 +117,43 @@ void Link2Files (const char * likable_file)
         }
     }
 
-    size_t start_offset = cb.offset;
+    Elf64_Phdr text_segment =
+    {
+        .p_type     = PT_LOAD,
+        .p_flags    = PF_R | PF_X,
+        .p_offset   = ALIGN,
+        .p_vaddr    = 0x4001000,
+        .p_paddr    = 0x4001000,
+        .p_filesz   = cb.offset,
+        .p_memsz    = cb.offset,
+        .p_align    = ALIGN
+    };
 
+    Elf64_Phdr data_segment =
+    {
+        .p_type     = PT_LOAD,
+        .p_flags    = PF_R | PF_W,
+        .p_offset   = ELF64_ALIGN (text_segment.p_offset + text_segment.p_memsz, ALIGN),
+        .p_vaddr    = ELF64_ALIGN (text_segment.p_vaddr + text_segment.p_memsz, ALIGN),
+        .p_paddr    = ELF64_ALIGN (text_segment.p_paddr + text_segment.p_memsz, ALIGN),
+        .p_filesz   = cb_data.offset,
+        .p_memsz    = cb_data.offset,
+        .p_align    = ALIGN
+    };
+
+    CodeBuffer_t txt_cb = {};
+    CodeBuffer_t dt_cb  = {};
+
+    code_buffer_init (&txt_cb);
+    code_buffer_init (&dt_cb);
+    
+    
     printf ("%c - segtype, offset = %d\n", seg_type, ehdr_o.e_shoff);
 
     return;
 }
 
-int CodeBufferWriteFromFile (CodeBuffer_t * cb, size_t len, FILE * file)
+void CodeBufferWriteFromFile (CodeBuffer_t * cb, FILE * file, size_t len, size_t offset)
 {
     while (cb->offset + len > cb->buffer_size)
     {
@@ -153,17 +166,21 @@ int CodeBufferWriteFromFile (CodeBuffer_t * cb, size_t len, FILE * file)
         }
     }
 
-    fread (cb->buffer + cb->offset, sizeof (uint8_t), len, file);
+    fseek (file, offset, SEEK_SET);
+    fread (cb->buffer, len, 1, file);
 
     cb->offset += len;
 
-    return 0;
+    return;
 }
 
-void ProcessLinkSegmet (FILE * lnkbl_f, CodeBuffer_t * cb, Elf64_Shdr * shdr_s)
+void ProcessLinkSegmet (FILE * file, Elf64_Shdr * shdr_o_to_fill, size_t offset)
 {
 
-    Elf64_Rela rela_s = {};
+    CodeBuffer_t cb = {};
+    code_buffer_init (&cb);
 
 
+
+    cb->buffer_size 
 }

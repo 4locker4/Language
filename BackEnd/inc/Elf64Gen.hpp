@@ -29,22 +29,17 @@ typedef enum
     R15
 } REGISTERS;
 
-typedef struct
+typedef enum
 {
-    const char * label_name = NULL;
-    int64_t      address    = 0;
-} SYMBOL;
+    TEXT_SEG = 1,
+    DATA_SEG = 2,
+    EXTERN_FUNC = SHN_UNDEF
+} SEG_NUM;
 
 typedef struct
 {
-    const char * target = NULL;
-    int patch_offset    = 0;
-    bool relative       = 0;
-} RELOCATION;
-
-typedef struct
-{
-    RELOCATION * relocation = NULL;
+    Elf64_Rela * relocation = NULL;
+    char ** target_names    = NULL;
 
     size_t free_box = 0;
     size_t capacity = 0;
@@ -52,12 +47,25 @@ typedef struct
 
 typedef struct
 {
-    SYMBOL * labels = NULL;
-
-    size_t free_box = 0;
-    size_t capacity = 0;
-
-    size_t labels_len = 0;
+    Elf64_Sym * labels = NULL;
+    
+    size_t l_free_box = 0;
+    size_t l_capacity = 0;
 } SYMBOL_TABLE;
+
+typedef struct 
+{
+    char * strtab     = NULL;
+
+    size_t srt_id     = 0;
+    size_t str_capacity = 0;
+} STRTAB_TABLE;
+
+typedef struct
+{
+    RELOC_TABLE  rel_t = {};
+    SYMBOL_TABLE sm_t  = {};
+    STRTAB_TABLE str_t = {};
+} ADDR_T;
 
 #endif // ELF_64_GEN

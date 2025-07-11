@@ -1,4 +1,3 @@
-section .note.GNU-stack noexec
 section .text
 
 global _start

@@ -13,7 +13,7 @@ includes = ./inc/Tree.h ./inc/Utils.h ./inc/Asserts.h ./inc/Language.h ./BackEnd
 			./BackEnd/inc/EmittersDSL.hpp ./BackEnd/inc/emitters.hpp
 
 sources = ./src/Language.cpp ./src/Tree.cpp ./src/Utils.cpp ./BackEnd/src/CodeGen.cpp ./BackEnd/src/ElfFiller.cpp ./BackEnd/src/emitters.cpp \
-		  ./BackEnd/src/LinkerPrototype.cpp
+#./BackEnd/src/LinkerPrototype.cpp
 
 objects = $(sources:.cpp=.o)
 
@@ -36,10 +36,10 @@ factorial:
 	./Language.out Factorial
 	dot -Tsvg FactorialTranslation/FactorialDump.dot -o FactorialTranslation/FactorialDump.svg
 	mv ./FactorialTranslation/FactorialNasm.txt ./FactorialTranslation/FactorialNasm.asm
+	mv ./FactorialTranslation/FactorialBin.txt ./FactorialTranslation/FactorialBin.o
 	nasm -f elf64 ./BackEnd/src/Printf.asm -o ./BackEnd/src/Printf.o
 	nasm -f elf64 ./FactorialTranslation/FactorialNasm.asm -o ./FactorialTranslation/FactorialNasm.o
-	ld -o ./FactorialTranslation/FactorialProg.out ./FactorialTranslation/FactorialBin.txt ./BackEnd/src/Printf.o
-#chmod +x ./FactorialTranslation/FactorialBin.txt
+	ld -nostdlib -static -o ./FactorialTranslation/FactorialProg.out ./FactorialTranslation/FactorialBin.o ./BackEnd/src/Printf.o
 
 square:
 	./Language.out SquareSolver
